@@ -1,0 +1,18 @@
+import random
+import math
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+from torch.autograd import Variable
+import matplotlib.pyplot as plt
+
+# Various random seeds
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.cuda.manual_seed(seed)

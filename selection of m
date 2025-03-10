@@ -1,0 +1,372 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 10 01:32:19 2025
+
+@author: tracy
+"""
+
+import torch
+import torch.nn as nn
+import numpy as np
+import random
+from sklearn.datasets import make_moons
+import matplotlib.pyplot as plt
+from pandas import DataFrame
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+import torch.nn.functional as F
+from torch.autograd import Variable
+from itertools import cycle
+import torch.optim as optim
+
+import argparse
+
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]  =  "TRUE"
+import sys
+sys.path.append(r"C:\Users\tracy\Desktop\WGR")
+
+
+def setup_seed(seed):
+     torch.manual_seed(seed)
+     torch.cuda.manual_seed_all(seed)
+     np.random.seed(seed)
+     random.seed(seed)
+     torch.backends.cudnn.deterministic = True
+
+# =============================================================================
+# settings
+# =============================================================================
+
+parser = argparse.ArgumentParser(description='PyTorch Implementation of Supervised Learning for MNIST')
+
+parser.add_argument('--train', default=5000, type=int, help='size of train dataset')
+parser.add_argument('--val', default=1000, type=int, help='size of validation dataset')
+parser.add_argument('--test', default=1000, type=int, help='size of test dataset')
+#parser.add_argument('--noise', default=5, type=int, help='dimensionality of noise vector')
+
+parser.add_argument('--epochs', default=100, type=int, help='number of epochs to train')
+parser.add_argument('--batch', default=128, type=int, metavar='BS', help='batch size')
+
+parser.add_argument('--Xdim', default=5, type=int, help='dimensionality of X')
+parser.add_argument('--reps', default=100, type=int, help='number of replications')
+
+args = parser.parse_args()
+    
+
+#build a dataset, which is used to train the models
+class TensorDataset(Dataset):
+    
+    "Define the class which is used to build the new data set"
+    
+    def __init__(self, data_tensor, target_tensor):
+        self.data_tensor = data_tensor
+        self.target_tensor = target_tensor
+
+    def __getitem__(self, index):
+        return self.data_tensor[index], self.target_tensor[index]
+
+    def __len__(self):
+        return self.data_tensor.size(0)
+
+# =============================================================================
+# noise generation
+# =============================================================================
+def sample_noise(size,dim):
+    
+    temp = torch.randn(size,dim)
+
+    return temp
+
+# =============================================================================
+# define networks
+# =============================================================================
+def discriminator():
+    model = nn.Sequential(
+       # Flatten(),
+        nn.Linear(args.Xdim + 1,64),
+        nn.LeakyReLU(0.01, inplace=True),
+        nn.Linear(64,32),
+        nn.LeakyReLU(0.01, inplace=True),
+        nn.Linear(32,1) #the probability of true or false
+    )
+    return model
+
+#define the generator  
+def generator():
+    model = nn.Sequential(
+        nn.Linear(args.Xdim + args.noise,64),
+        nn.LeakyReLU(0.01, inplace=True),
+        nn.Linear(64,32),
+        nn.LeakyReLU(0.01, inplace=True),
+        nn.Linear(32,1)# the dimension of Y is 1
+    )
+    return model
+
+
+
+# device = torch.device('cuda'if torch.cuda.is_available() else 'cpu')
+device = 'cpu'
+print(device) 
+
+# =============================================================================
+# define the loss function
+# =============================================================================
+def discriminator_loss(logits_real, logits_fake):
+
+    real_image_loss = torch.mean(logits_real)
+    fake_image_loss = torch.mean(logits_fake)
+
+    loss = real_image_loss - fake_image_loss  
+
+    return loss
+
+def generator_loss(logits_fake):
+
+    loss = torch.mean(logits_fake)
+
+    return loss
+
+l1_loss = nn.L1Loss()  # loss(input,target)
+l2_loss = nn.MSELoss()
+
+def reset_grad():
+    D_solver.zero_grad()
+    G_solver.zero_grad()
+    
+def calculate_gradient_penalty(model, real_images, fake_images, device):
+    """Calculates the gradient penalty loss for WGAN GP"""
+    # Random weight term for interpolation between real and fake data
+    alpha = torch.randn((real_images.size(0), 1), device=device)
+    # Get random interpolation between real and fake data
+    interpolates = (alpha * real_images + ((1 - alpha) * fake_images)).requires_grad_(True)
+
+    model_interpolates = model(interpolates)
+    grad_outputs = torch.ones(model_interpolates.size(), device=device, requires_grad=False)
+
+    # Get gradient w.r.t. interpolates
+    gradients = torch.autograd.grad(
+        outputs=model_interpolates,
+        inputs=interpolates,
+        grad_outputs=grad_outputs,
+        create_graph=True,
+        retain_graph=True,
+        only_inputs=True,
+    )[0]
+    gradients = gradients.view(gradients.size(0), -1)
+    gradient_penalty = torch.mean((gradients.norm(2, dim=1) - 1) ** 2)
+    return gradient_penalty
+
+# =============================================================================
+# validation
+# =============================================================================
+def val_G():
+    with torch.no_grad():
+        val_L1 = torch.zeros(10)
+        val_L2 = torch.zeros(10)
+        mse_mean = torch.zeros(10)
+        mse_sd = torch.zeros(10)
+        
+        for batch_idx, (x,y) in enumerate(loader_val):
+            output = torch.zeros([200,100])
+            for i in range(200):
+                eta = sample_noise(x.size(0), args.noise)
+                g_input = torch.cat([x,eta],dim=1)
+                output[i] = G(g_input).view(x.size(0)).detach()
+            
+            y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
+            val_L1[batch_idx] = l1_loss( output.mean(dim=0), y )
+            val_L2[batch_idx] = l2_loss( output.mean(dim=0), y )
+            mse_mean[batch_idx] = ((output.mean(dim=0) - y_test)**2).mean()
+            mse_sd[batch_idx] = ((((output - output.mean(dim=0))**2).mean(dim=0).sqrt() -1 )**2).mean()
+        
+        print(val_L1.mean(), val_L2.mean(), mse_mean.mean(), mse_sd.mean() )   
+        return val_L1.mean().detach().numpy(), val_L2.mean().detach().numpy() , mse_mean.detach().mean().numpy(), mse_sd.detach().mean().numpy()
+
+# =============================================================================
+# test
+# =============================================================================
+def test_G():
+    with torch.no_grad():
+        val_L1 = torch.zeros(10)
+        val_L2 = torch.zeros(10)
+        mse_mean = torch.zeros(10)
+        mse_sd = torch.zeros(10)
+        
+        for batch_idx, (x,y) in enumerate(loader_test):
+            output = torch.zeros([200,100])
+            for i in range(200):
+                eta = sample_noise(x.size(0), args.noise)
+                g_input = torch.cat([x,eta],dim=1)
+                output[i] = G(g_input).view(x.size(0)).detach()
+            
+            y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
+            val_L1[batch_idx] = l1_loss( output.mean(dim=0), y )
+            val_L2[batch_idx] = l2_loss( output.mean(dim=0), y )
+            mse_mean[batch_idx] = ((output.mean(dim=0) - y_test)**2).mean()
+            mse_sd[batch_idx] = ((((output - output.mean(dim=0))**2).mean(dim=0).sqrt() -1 )**2).mean()
+        
+        print(val_L1.mean(), val_L2.mean(), mse_mean.mean(), mse_sd.mean() )   
+        return val_L1.mean().detach().item(), val_L2.mean().detach().item(), mse_mean.mean().detach().item(), mse_sd.mean().detach().item()
+
+from scipy.stats import norm
+
+def Quantile_G():
+    with torch.no_grad():
+        Q_05 = torch.zeros(10)
+        Q_25 = torch.zeros(10)
+        Q_50 = torch.zeros(10)
+        Q_75 = torch.zeros(10)
+        Q_95 = torch.zeros(10)
+
+        for batch_idx, (x,y) in enumerate(loader_test):
+            output = torch.zeros([200,100])
+            for i in range(200):
+                eta = sample_noise(x.size(0), args.noise)
+                g_input = torch.cat([x,eta],dim=1)
+                output[i] = G(g_input).view(x.size(0)).detach()
+            
+            A = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
+            Q_05[batch_idx] = ((output.quantile(0.05,axis=0) - norm.ppf(0.05, A, 1) )**2).mean()
+            Q_25[batch_idx] = ((output.quantile(0.25,axis=0) - norm.ppf(0.25, A, 1) )**2).mean()
+            Q_50[batch_idx] = ((output.quantile(0.50,axis=0) - norm.ppf(0.5, A, 1) )**2).mean()
+            Q_75[batch_idx] = ((output.quantile(0.75,axis=0) - norm.ppf(0.75, A, 1) )**2).mean()
+            Q_95[batch_idx] = ((output.quantile(0.95,axis=0) - norm.ppf(0.95, A, 1) )**2).mean()
+            
+        print(Q_05.mean(), Q_25.mean(), Q_50.mean(), Q_75.mean(), Q_95.mean())
+        return Q_05.mean().detach().item(), Q_25.mean().detach().item(), Q_50.mean().detach().item(), Q_75.mean().detach().item(), Q_95.mean().detach().item()
+# =============================================================================
+# train the model
+# =============================================================================
+def train_gan(D,G, D_solver,G_solver, num_epochs=10):
+    iter_count = 0 
+    l1_Acc, l2_Acc, MSE_mean, MSE_sd = val_G()
+    Best_acc = l2_Acc.copy()
+    
+    for epoch in range(num_epochs):
+        for batch_idx, (x,y) in enumerate(loader_label):
+            if x.size(0) != args.batch:
+                continue
+    
+            eta = Variable(sample_noise(x.size(0), args.noise))
+            
+            d_input = torch.cat([x,y.view(args.batch,1)],dim=1)
+            g_input = torch.cat([x,eta],dim=1)
+            
+            #train D
+            D_solver.zero_grad()
+            logits_real = D(d_input)
+            
+            fake_y = G(g_input).detach()
+            fake_images = torch.cat([x,fake_y.view(args.batch,1)],dim=1)
+            logits_fake = D(fake_images)
+            
+            penalty = calculate_gradient_penalty(D,logits_real,fake_images,device)
+            d_error = discriminator_loss(logits_real, logits_fake) + 10 * penalty
+            d_error.backward() 
+            D_solver.step()
+            ######################################################            
+            # train G
+            G_solver.zero_grad()
+            fake_y = G(g_input)
+            fake_images = torch.cat([x,fake_y.view(args.batch,1)],dim=1)
+            logits_fake = D(fake_images)
+            
+            g_output = torch.zeros([50,args.batch])
+            for i in range(50):
+                eta = sample_noise(x.size(0), args.noise)
+                g_input = torch.cat([x,eta],dim=1)
+                g_output[i] = G(g_input).view(x.size(0))
+            
+            g_error =  0.9 * generator_loss(logits_fake) + 0.1 * l2_loss(g_output.mean(dim=0), y)
+            g_error.backward()
+            G_solver.step()
+            
+            if(iter_count % 50 == 0):
+                print('Iter: {}, D: {:.4}, G:{:.4}'.format(iter_count,d_error.item(),g_error.item()))
+                #print(G(eg_G)[0:5].T)
+            
+            if(iter_count > 100):    
+                if(iter_count % 100 == 0):
+                    l1_Acc, l2_Acc, MSE_mean, MSE_sd = val_G()
+                    # test_G()
+                    if l2_Acc < Best_acc:
+                        print('################## save G model #################')
+                        Best_acc = l2_Acc.copy()
+                        torch.save(G,'C:/Users/tracy/Desktop/WGR/WGR/d100/M1-m5-n200/WGR-G-rep'+str(k)+'.pth')
+                        torch.save(D,'C:/Users/tracy/Desktop/WGR/WGR/d100/M1-m5-n200/WGR-D-rep'+str(k)+'.pth')
+            iter_count += 1
+
+
+  
+# =============================================================================
+# start replications
+# =============================================================================
+test_G_reps = torch.zeros([args.reps,4])
+
+test_G_quantile = torch.zeros([args.reps,5])
+
+setup_seed(1234)
+reps=(100,)
+seed = torch.randint(0, 10000, reps)  
+
+# 31, 93 outlier when d=5
+# 98, 62,.44, 1+100,  78, 93, 4, 33, 69, 45, 22, 90, 3, 0, 30, 59, 75+100, 61+100, 29, 65, 66 ,19
+
+for k in range(100):
+    
+    print('============================ REPLICATION ==============================')
+    print(k,seed[k])
+    setup_seed(seed[k].detach().numpy().item())
+    
+    # =============================================================================
+    # generate data: M1
+    # =============================================================================
+    # training data
+    train_X = torch.randn([args.train,args.Xdim])
+    #beta = torch.cat([torch.ones([5]),torch.zeros([46])])
+    train_eps = torch.randn([args.train]) 
+    train_Y = train_X[:,0]**2 + torch.exp(train_X[:,1]+train_X[:,2]/3) + torch.sin(train_X[:,3]+train_X[:,4]) + train_eps
+
+    # validation data 
+    val_X = torch.randn([args.val,args.Xdim]) 
+    val_eps = torch.randn([args.val]) 
+    val_Y = val_X[:,0]**2 + torch.exp(val_X[:,1]+val_X[:,2]/3) + torch.sin(val_X[:,3]+val_X[:,4]) + val_eps
+
+    # test dat
+    test_X = torch.randn([args.test,args.Xdim]) 
+    test_eps = torch.randn([args.test]) 
+    test_Y = test_X[:,0]**2 + torch.exp(test_X[:,1]+test_X[:,2]/3) + torch.sin(test_X[:,3]+test_X[:,4]) + test_eps
+    
+    train_dataset = TensorDataset( train_X.float(), train_Y.float() )
+    loader_label = DataLoader(train_dataset , batch_size=args.batch, shuffle=True)
+    
+    val_dataset = TensorDataset( val_X.float(), val_Y.float() )
+    loader_val = DataLoader(val_dataset , batch_size=100, shuffle=True)
+    
+    test_dataset = TensorDataset( test_X.float(), test_Y.float() )
+    loader_test  = DataLoader(test_dataset , batch_size=100, shuffle=True)
+     
+    
+    D = discriminator()
+    G = generator()
+
+
+    D_solver = optim.RMSprop(D.parameters(),lr = 0.001)
+    G_solver = optim.RMSprop(G.parameters(),lr = 0.001)
+    
+    # D_solver = optim.Adam(D.parameters(), lr=0.001, betas=(0.9, 0.999))
+    # G_solver = optim.Adam(G.parameters(), lr=0.001, betas=(0.9, 0.999))                    
+
+    train_gan(D,G, D_solver,G_solver, num_epochs=1000)
+
+    G = torch.load('C:/Users/tracy/Desktop/WGR/WGR/d100/M1-m5-n200/WGR-G-rep'+str(k)+'.pth')
+    
+    test_G_reps[k] = torch.Tensor(test_G())
+    test_G_quantile[k] = torch.Tensor(Quantile_G())
+
+print(torch.mean(test_G_reps,dim=0))
+print(torch.std(test_G_reps,dim=0))
+
+print(torch.mean(test_G_quantile,dim=0))
+print(torch.std(test_G_quantile,dim=0))

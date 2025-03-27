@@ -6,7 +6,7 @@ from multivariateY_generate import generate_Gussian_mixture_data, generate_invol
 # Data generation models
 # =============================================================================
 class DataGenerator:
-    """Data generator for various simulation models (M1, M2, SM1, SM2, SM3)."""
+    """Data generator for various simulation models (M1, M2, M3, M4, SM1, SM2, SM3, SM4)."""
     
     def __init__(self, args):
         """Initialize with args containing train, val, test sizes and Xdim."""

@@ -6,7 +6,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-class DatasetLoader_image:
+class DatasetLoader:
     def __init__(self, data_root='./data', batch_size=64, num_workers=2, download=True):
         """
         Initialize the dataset loader with parameters
@@ -228,8 +228,9 @@ class DatasetLoader_image:
         plt.tight_layout()
         plt.show()
 
-
+# =============================================================================
 # Example usage
+# =============================================================================
 if __name__ == "__main__":
     # Initialize dataset loader
     loader = DatasetLoader(batch_size=32)

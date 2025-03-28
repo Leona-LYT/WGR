@@ -75,17 +75,4 @@ def regression_net(in_dim=None, out_dim=None, hidden_dims=None, depth=2, width=6
     return nn.Sequential(*layers)
 
 # Usage examples:
-# Basic usage with default values (uses global Xdim and Ydim)
-# model = regression_net()
-
-# Explicitly specify dimensions
-# model = regression_net(in_dim=10, out_dim=1)
-
-# Create a deeper network
-# model = regression_net(in_dim=10, out_dim=1, depth=4, width=128)
-
-# Create a network with custom hidden layer dimensions
 # model = regression_net(in_dim=10, out_dim=1, hidden_dims=[128, 64, 32])
-
-# Change activation function
-# model = regression_net(in_dim=10, out_dim=1, activation='relu')

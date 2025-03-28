@@ -5,15 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from torch.distributions.multivariate_normal import MultivariateNormal
 
-# =============================================================================
-# Define data generator for differe models
-# =============================================================================
-
 # Independent Gussian Mixture Model
-
 def generate_Gussian_mixture_data(X=None, n_samples=10000):
     """
-    Generate data with three clusters based on uniform interval partitioning.
+    Generate data for Independent Gussian Mixture Model
     
     Parameters:
     X (torch.Tensor, optional): Default X input. If None, randomly generated
@@ -179,78 +174,5 @@ def generate_octagon_data(X=None, n_samples=10000):
     
     return X, Y
 
-# =============================================================================
-# Visualization 
-# =============================================================================
-def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05, 
-               bw_adjust=0.2, levels=6, fig_size=(8, 6), title=None):
-    """
-    Create a 2D kernel density estimation plot for bivariate data.
-    
-    Parameters:
-    data (array-like): Input data with shape (n_samples, 2)
-    cmap (str): Colormap for the density plot
-    fill (bool): Whether to fill the contour
-    show_cbar (bool): Whether to show the color bar
-    thresh (float): Threshold for the contour plot
-    bw_adjust (float): Bandwidth adjustment factor
-    levels (int): Number of contour levels
-    fig_size (tuple): Figure size (width, height) in inches
-    title (str): Optional title for the plot
-    
-    Returns:
-    fig, ax: The matplotlib figure and axis objects
-    """
-    
-    # Create a new figure
-    fig, ax = plt.subplots(figsize=fig_size)
-    
-    # Create the KDE plot
-    sns.kdeplot(
-        x=data[:, 0], 
-        y=data[:, 1],
-        cmap=cmap,
-        fill=fill,
-        cbar=show_cbar,
-        thresh=thresh, 
-        bw_adjust=bw_adjust, 
-        levels=levels,
-        common_grid=True,
-        cbar_kws={'format': '%.3f'},
-        ax=ax
-    )
-    
-    # Add title if provided
-    if title:
-        ax.set_title(title)
-    
-    # Return the figure and axis objects for further customization if needed
-    return fig, ax
-                   
-# =============================================================================
-# Plots
-# =============================================================================
-eg_X = torch.from_numpy(np.random.normal(0, 1, 1)) # randomly select a sample X
-n_samples = 5000
 
-# Create a tensor with repeated X values
-X_repeated = eg_X.repeat(n_samples)
-
-# Generate data in batches
-_, eg_Y_GaussMix = generate_Gussian_mixture_data(X=X_repeated)
-_, eg_Y_involute = generate_involute_data(X=X_repeated)
-_, eg_Y_octagon = generate_octagon_data(X=X_repeated)
-
-# At this point, each Y tensor should have shape [n_samples, 2]
-fig, ax = plot_kde_2d(eg_Y_GaussMix, title="Gussian Mixture Model")
-plt.show()
-plt.close()
-
-fig, ax = plot_kde_2d(eg_Y_involute, title="Involute Model")
-plt.show()
-plt.close()
-
-fig, ax = plot_kde_2d(eg_Y_octagon, title="Octagon Model")
-plt.show()
-plt.close()
 

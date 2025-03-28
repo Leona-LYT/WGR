@@ -1,5 +1,5 @@
 # =============================================================================
-#validation
+# validation
 # =============================================================================
 def val_G(G, loader_val, noise_dim, num_samples=100, device='cuda', 
           loss_functions=None, multivariate=False, reshape_input=False):

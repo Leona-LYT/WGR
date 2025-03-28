@@ -1,18 +1,18 @@
 import torch
 import torch.nn as nn
 from basic_utils import Flatten, Unflatten
-
 # =============================================================================
-# define discriminator network
+# feedforward networks
 # =============================================================================
-def discriminator_fnn(input_dim=None, hidden_dims=None, network_type='univariate', flatten=False, leaky_relu_slope=0.01):
+def discriminator_fnn(input_dim=None, output_dim=1, hidden_dims=None, network_type='univariate', flatten=False, leaky_relu_slope=0.01):
     """
     A flexible discriminator model that can be configured for different use cases.
     The FNNs are considered for tabular data and MNIST.
     
     Args:
         input_dim (int): Dimension of input features.
-                         If None, will use args.Xdim + 1 for both univariate and multivariate responses
+                         If None, will use Xdim + Ydim for both univariate and multivariate responses
+        output_dim (int): Dimension of output. Default is 1 for binary classification.
         hidden_dims (list): List of hidden layer dimensions.
                            Default configurations:
                            - Univariate: [64, 32]
@@ -34,7 +34,7 @@ def discriminator_fnn(input_dim=None, hidden_dims=None, network_type='univariate
     # Configure default settings based on input dimension
     if input_dim is None:
         if 'args' in globals() and hasattr(args, 'Xdim'):
-            input_dim = args.Xdim + 1  # Use args.Xdim + 1 for both univariate and multivariate
+            input_dim = args.Xdim + args.Ydim  # Use args.Xdim + args.Ydim for both univariate and multivariate
         elif network_type == 'mnist':
             input_dim = 784  # Default for MNIST
     
@@ -54,12 +54,14 @@ def discriminator_fnn(input_dim=None, hidden_dims=None, network_type='univariate
         layers.append(nn.LeakyReLU(leaky_relu_slope, inplace=True))
         current_dim = h_dim
     
-    # Output layer
-    layers.append(nn.Linear(current_dim, 1))
+    # Output layer with configurable output dimension
+    layers.append(nn.Linear(current_dim, output_dim))
     
     return nn.Sequential(*layers)
-    return model
 
+# =============================================================================
+# convolutional networks
+# =============================================================================
 def discriminator_cnn(network_type='mnist', batch_size=None, in_channels=None, use_sigmoid=False, input_shape=None):
     """
     A flexible CNN discriminator that supports different architectures, which are used for image analysis.
@@ -174,24 +176,13 @@ def discriminator_cnn(network_type='mnist', batch_size=None, in_channels=None, u
         layers.append(nn.Sigmoid())
         
     return nn.Sequential(*layers)
-# =============================================================================
-# define networks used for the simulation with multivariate response Y
-# ============================================================================= 
-# =============================================================================
-# define networks used for the simulation with multivariate response Y
-# ============================================================================= 
 
-#define the generator  
-def generator(noise):
-    model = nn.Sequential(
-        nn.Linear(args.Xdim + noise_diim, 64),
-        nn.LeakyReLU(0.01, inplace=True),
-        nn.Linear(64, 32),
-        nn.LeakyReLU(0.01, inplace=True),
-        nn.Linear(32, args.Ydim)# the dimension of Y is 1
-    )
-    return model
-
-
-
-
+# Usage examples:
+#FNN
+# uniY_disc =discriminator_fnn(input_dim=10, output_dim=1)
+# multiY_disc = discriminator_fnn(input_dim=10, output_dim=10, network_type='multivariate')
+# mnist_disc = discriminator_fnn(network_type='mnist', output_dim=1)
+#CNN
+# mnist_disc = discriminator_cnn(network_type='mnist')
+# stl10_disc = discriminator_cnn(network_type='stl10', use_sigmoid=True)
+# patchgan_disc = discriminator_cnn(network_type='patchgan', input_shape=(3, 256, 256), use_sigmoid=True)

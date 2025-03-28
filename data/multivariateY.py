@@ -1,8 +1,6 @@
 import torch
 import numpy as np
 import math
-import matplotlib.pyplot as plt
-import seaborn as sns
 from torch.distributions.multivariate_normal import MultivariateNormal
 
 # Independent Gussian Mixture Model

@@ -1,6 +1,12 @@
+import sys
+import os
+current_dir = os.getcwd() 
+parent_dir = os.path.dirname(current_dir) 
+sys.path.append(parent_dir)
+
 import torch
 import torch.nn as nn
-from basic_utils import Flatten, Unflatten
+from utils.basic_utils import Flatten, Unflatten
 # =============================================================================
 # feedforward networks
 # =============================================================================

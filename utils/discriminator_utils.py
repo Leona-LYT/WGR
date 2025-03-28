@@ -8,6 +8,7 @@ def discriminator_fnn(input_dim=None, output_dim=1, hidden_dims=None, network_ty
     """
     A flexible discriminator model that can be configured for different use cases.
     The FNNs are considered for tabular data and MNIST.
+    Default FNNs are provided, but you can define your own network as needed.
     
     Args:
         input_dim (int): Dimension of input features.
@@ -65,6 +66,7 @@ def discriminator_fnn(input_dim=None, output_dim=1, hidden_dims=None, network_ty
 def discriminator_cnn(network_type='mnist', batch_size=None, in_channels=None, use_sigmoid=False, input_shape=None):
     """
     A flexible CNN discriminator that supports different architectures, which are used for image analysis.
+    Default FCNNs are provided, but you can define your own network as needed.
     
     Args:
         network_type (str): 'mnist', 'stl10', or 'patchgan'

@@ -191,9 +191,9 @@ def generator_cnn(generator_type='dcgan', input_shape=None, Xdim=None, noise_dim
 
 
 # Usage examples:
-# gen_univariate = generator(Xdim=10, Ydim=1, noise_dim=100, network_type='univariate')
-# gen_multivariate = generator(Xdim=10, Ydim=5, noise_dim=100, network_type='multivariate')
-# gen_mnist = generator(Xdim=784, Ydim=144, noise_dim=100, network_type='mnist')
-# gen_custom = generator(Xdim=784, Ydim=144,  noise_dim=100, hidden_dims=[256, 128, 64], activation='relu', final_activation='tanh')
+# gen_univariate = generator_fnn(Xdim=10, Ydim=1, noise_dim=100, network_type='univariate')
+# gen_multivariate = generator_fnn(Xdim=10, Ydim=5, noise_dim=100, network_type='multivariate')
+# gen_mnist = generator_fnn(Xdim=784, Ydim=144, noise_dim=100, network_type='mnist')
+# gen_custom = generator_fnn(Xdim=784, Ydim=144,  noise_dim=100, hidden_dims=[256, 128, 64], activation='relu', final_activation='tanh')
 # dcgan_gan = generator_cnn('dcgan', Xdim=10, noise_dim=100, batch_size=64)
-# unet_gen = create_generator('unet', input_shape=(3, 128, 128))
+# unet_gen = generator_cnn('unet', input_shape=(3, 128, 128))

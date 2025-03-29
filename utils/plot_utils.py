@@ -172,4 +172,101 @@ def plot_performance_across_iterations(G_quan, WGAN=None, show_wgan=False, figsi
     
     # Close the figure to free memory
     plt.close()             
-             
+
+
+# visualization of reconstructed mnist data
+def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25)):
+    """
+    Visualize MNIST-style dataset, showing two different samples for each digit (0-9).
+    
+    Parameters:
+        dataset: MNIST dataset or similar format (already loaded)
+        save_path: If provided, the image will be saved to this path
+        figsize: Figure size
+    """
+    # Create a dictionary to store indices by digit
+    digit_indices = {i: [] for i in range(10)}
+    
+    # Iterate through the dataset, collecting indices for each digit
+    for idx, (img, label) in enumerate(dataset):
+        if isinstance(label, torch.Tensor):
+            label = label.item()
+        digit_indices[label].append(idx)
+    
+    # Create figure with smaller width to make columns closer
+    fig, axes = plt.subplots(10, 2, figsize=figsize)
+    fig.subplots_adjust(wspace=0.00)  # Reduce column spacing
+    
+    # Visualize two samples for each digit
+    for digit in range(10):
+        # Select two samples for each digit
+        selected_indices = digit_indices[digit][:2]
+        
+        # Ensure there are enough samples
+        if len(selected_indices) < 2:
+            print(f"Warning: Less than two samples for digit {digit}")
+            continue
+            
+        # Display two samples
+        for col in range(2):
+            idx = selected_indices[col]
+            img, _ = dataset[idx]
+            
+            # If tensor, convert to numpy array
+            if isinstance(img, torch.Tensor):
+                if img.dim() == 3 and img.size(0) == 1:  # Single channel image with shape [1, H, W]
+                    img = img.squeeze(0).numpy()
+                else:
+                    img = img.numpy()
+            
+            # Ensure the image is 2D
+            if img.ndim == 3 and img.shape[0] == 1:
+                img = img[0]
+                
+            # Display image without title
+            axes[digit, col].imshow(img, cmap='gray')
+            axes[digit, col].axis('off')  # Turn off axes
+    
+    plt.tight_layout()  # Adjust layout
+    
+    # Save image
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    
+    # Display image
+    plt.show()
+
+def visualize_custom_digits(images, labels, save_path=None, figsize=(6, 16)):
+    """
+    Visualize custom digit images, showing two samples for each digit (0-9).
+    
+    Parameters:
+        images: Image array with shape [N, H, W] or [N, 1, H, W]
+        labels: Label array with shape [N]
+        save_path: If provided, the image will be saved to this path
+        figsize: Figure size
+    """
+    # Convert images and labels to list format
+    data = [(images[i], labels[i]) for i in range(len(images))]
+    
+    # Create a dataset-like object
+    class CustomDataset:
+        def __init__(self, data):
+            self.data = data
+        
+        def __getitem__(self, index):
+            return self.data[index]
+        
+        def __len__(self):
+            return len(self.data)
+    
+    # Create custom dataset
+    custom_dataset = CustomDataset(data)
+    
+    # Call visualization function
+    visualize_mnist_digits(custom_dataset, save_path, figsize)
+
+#examples
+# images_tensor = torch.randn(20, 1, 28, 28)
+# sequential_labels = torch.tensor([i//2 for i in range(20)])
+# visualize_custom_digits(images_tensor, sequential_labels, save_path="visualization.png")

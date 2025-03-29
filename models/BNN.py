@@ -5,7 +5,7 @@ import pyro
 import pyro.distributions as dist
 from pyro.nn import PyroModule, PyroSample
 
-class BNN(PyroModule):
+class Bayesian_fnn(PyroModule):
     def __init__(
         self, 
         in_dim=100, 
@@ -135,5 +135,79 @@ class BNN(PyroModule):
         
         return mu
 
+
+class Bayesian_cnn(PyroModule):
+    def __init__(self, 
+                 input_channels=1, 
+                 hidden_channels=(16, 32), 
+                 output_dim=144, 
+                 input_size=(28, 28),
+                 w_scale=1.0,
+                 b_scale=10.0):
+        """Flexible Bayesian CNN with configurable architecture"""
+        super().__init__()
+        
+        # Store configuration
+        self.input_size = input_size
+        self.input_channels = input_channels
+        
+        # Create layers
+        self.conv_layers = nn.ModuleList()
+        in_channels = input_channels
+        
+        # Build conv layers dynamically
+        for i, out_channels in enumerate(hidden_channels):
+            conv = PyroModule[nn.Conv2d](
+                in_channels, out_channels, 
+                kernel_size=3, 
+                stride=1 if i == 0 else 2,
+                padding=1
+            )
+            # Set priors
+            conv.weight = PyroSample(dist.Normal(0., w_scale).expand([out_channels, in_channels, 3, 3]).to_event(4))
+            conv.bias = PyroSample(dist.Normal(0., b_scale).expand([out_channels]).to_event(1))
+            self.conv_layers.append(conv)
+            in_channels = out_channels
+        
+        # Pool and activation
+        self.pool = nn.MaxPool2d(2)
+        self.relu = nn.ReLU()
+        
+        # Calculate flattened size
+        h, w = input_size
+        h, w = h//2, w//2  # First pooling
+        for _ in range(1, len(hidden_channels)):
+            h, w = (h+1)//2, (w+1)//2  # Subsequent layers with stride=2
+        feature_size = hidden_channels[-1] * h * w
+        
+        # FC layer
+        self.fc = PyroModule[nn.Linear](feature_size, output_dim)
+        self.fc.weight = PyroSample(dist.Normal(0., w_scale).expand([output_dim, feature_size]).to_event(2))
+        self.fc.bias = PyroSample(dist.Normal(0., b_scale).expand([output_dim]).to_event(1))
+    
+    def forward(self, x, y=None):
+        # Ensure correct input shape
+        if x.dim() == 2:
+            x = x.view(-1, self.input_channels, *self.input_size)
+        
+        # Apply conv layers
+        for i, conv in enumerate(self.conv_layers):
+            x = self.relu(conv(x))
+            if i == 0:  # Pool only after first conv
+                x = self.pool(x)
+        
+        # FC layer
+        x = self.fc(x.view(x.size(0), -1))
+        x = torch.sigmoid(x)
+        
+        # Likelihood
+        if y is not None:
+            with pyro.plate("data", x.size(0)):
+                pyro.sample("obs", dist.Normal(x, torch.ones_like(x)).to_event(1), obs=y)
+        
+        return x
+        
 # Usage examples:
-# B_net = BNN(in_dim=10, out_dim=1, hidden_dims=[32, 16, 8])
+# B_net = Bayesian_fnn(in_dim=10, out_dim=1, hidden_dims=[32, 16, 8])
+# B_mnist = Bayesian_fnn(input_channels=1, hidden_channels=(32, 64), output_dim=144, input_size=(28, 28))
+# B_stl10 = Bayesian_fnn(input_channels=3, hidden_channels=(32, 64, 128, 256), output_dim=3*65*65, input_size=(128, 128))

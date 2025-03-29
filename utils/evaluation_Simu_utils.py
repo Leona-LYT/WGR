@@ -49,4 +49,73 @@ def MSE_mean_sd_G_uniY(J_t_size, model_type="M1"):
         
         return metrics
 
-  
+# =============================================================================
+# MSE_quantile
+# =============================================================================
+def MSE_quantile_G_uniY(model_type="M1", num_samples=500):
+    """
+    Evaluate quantile predictions of generator G against true quantiles.
+    
+    Args:
+        model_type: One of "M1", "M2", "SM1", "SM2", "SM3"
+        num_samples: Number of samples to draw from G for quantile estimation
+    
+    Returns:
+        Tuple of MSE for 5%, 25%, 50%, 75%, and 95% quantiles
+    """
+    quantiles = [0.05, 0.25, 0.50, 0.75, 0.95]
+    
+    with torch.no_grad():
+        num_batches = test_size // batch_size
+        Q_errors = {q: torch.zeros(num_batches) for q in quantiles}
+        
+        for batch_idx, (x, y) in enumerate(loader_test):
+            # Generate samples from G
+            outputs = torch.stack([
+                G(torch.cat([x, sample_noise(x.size(0), args.noise)], dim=1)).view(x.size(0))
+                for _ in range(num_samples)
+            ])
+            
+            # Calculate true quantiles based on model type
+            if model_type == "M1":
+                A = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + x[:,3] - x[:,4]
+                B = torch.sqrt(0.5 + x[:,1]**2/2 + x[:,4]**2/2)
+                true_quantiles = {q: norm.ppf(q, A, B) for q in quantiles}
+                
+            elif model_type == "M2":
+                beta = torch.tensor([1, 1, -1, -1, 1] + [0]*(args.Xdim-5)).float()
+                SI = x @ beta
+                
+                # Simulate true distribution for M2
+                F_output = torch.stack([
+                    SI**2 + torch.sin(torch.abs(SI)) + 2*torch.cos(torch.randn(x.size(0)))
+                    for _ in range(10000)
+                ])
+                
+                true_quantiles = {q: F_output.quantile(q, dim=0) for q in quantiles}
+                
+            elif model_type == "SM1":
+                A = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
+                true_quantiles = {q: norm.ppf(q, A, 1) for q in quantiles}
+                
+            elif model_type == "SM2":
+                A = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + x[:,3] - x[:,4]
+                true_quantiles = {q: t.ppf(q, 3) + A for q in quantiles}
+                
+            elif model_type == "SM3":
+                A = 5 + x[:,0]**2/3 + x[:,1]**2 + x[:,2]**2 + x[:,3] + x[:,4]
+                true_quantiles = {q: lognorm.ppf(q, np.sqrt(0.125), scale=A) for q in quantiles}
+            
+            # Calculate predicted quantiles and errors
+            for q in quantiles:
+                predicted_q = outputs.quantile(q, dim=0)
+                Q_errors[q][batch_idx] = ((predicted_q - true_quantiles[q])**2).mean()
+        
+        # Calculate average errors
+        results = [Q_errors[q].mean().detach().item() for q in quantiles]
+        
+        # Print results
+        result_str = ", ".join([f"Q_{int(q*100)}: {res:.4f}" for q, res in zip(quantiles, results)])
+        print(result_str)
+        
+        return tuple(results)

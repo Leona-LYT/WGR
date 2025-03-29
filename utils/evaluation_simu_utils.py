@@ -1,4 +1,10 @@
-def MSE_mean_sd_G_uniY(J_t_size, model_type="M1"):
+import torch
+from scipy.stats import norm
+from scipy.stats import lognorm
+# =============================================================================
+# MSE of conditional mean and conditional standard deviation
+# =============================================================================
+def MSE_mean_sd_G_uniY(G,J_t_size, model_type="M1"):
     with torch.no_grad():
         num_batches = test_size // batch_size
         val_L1 = torch.zeros(num_batches)
@@ -50,9 +56,9 @@ def MSE_mean_sd_G_uniY(J_t_size, model_type="M1"):
         return metrics
 
 # =============================================================================
-# MSE_quantile
+# MSE of conditional quantile
 # =============================================================================
-def MSE_quantile_G_uniY(model_type="M1", num_samples=500):
+def MSE_quantile_G_uniY(G,model_type="M1", num_samples=500):
     """
     Evaluate quantile predictions of generator G against true quantiles.
     

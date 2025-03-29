@@ -1,6 +1,12 @@
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from PIL import Image 
 import seaborn as sns
 
+import torch
+import torchvision.transforms as transforms
+  
 def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05, 
                bw_adjust=0.2, levels=6, fig_size=(8, 6), title=None):
     """
@@ -270,3 +276,137 @@ def visualize_custom_digits(images, labels, save_path=None, figsize=(6, 16)):
 # images_tensor = torch.randn(20, 1, 28, 28)
 # sequential_labels = torch.tensor([i//2 for i in range(20)])
 # visualize_custom_digits(images_tensor, sequential_labels, save_path="visualization.png")
+
+def visualize_images(images, labels=None, num_cols=5, figsize=None, titles=None, 
+                    resize_to=(128, 128), cmap=None, save_path=None):
+    """
+    Visualize any set of images (color or grayscale) with flexible layout.
+    
+    Parameters:
+        images: List of images or tensor of shape [N, C, H, W] or [N, H, W]
+        labels: Optional labels for the images
+        num_cols: Number of columns in the grid
+        figsize: Figure size (width, height) - calculated automatically if None
+        titles: Custom titles for each image (overrides labels)
+        resize_to: Target size to resize images (None to keep original size)
+        cmap: Colormap for displaying images (None for RGB/BGR images)
+        save_path: If provided, the visualization will be saved to this path
+    """
+    # Convert to list if tensor
+    if isinstance(images, torch.Tensor):
+        if images.dim() == 4:  # [N, C, H, W]
+            images = [img.permute(1, 2, 0).numpy() for img in images]
+        elif images.dim() == 3 and images.shape[0] in [1, 3]:  # Single image [C, H, W]
+            images = [images.permute(1, 2, 0).numpy()]
+        elif images.dim() == 3:  # Batch of grayscale [N, H, W]
+            images = [img.numpy() for img in images]
+        else:
+            raise ValueError(f"Unsupported tensor shape: {images.shape}")
+    
+    # Handle PIL images
+    if isinstance(images[0], Image.Image):
+        images = [np.array(img) for img in images]
+    
+    # Resize images if needed
+    if resize_to is not None:
+        resizer = transforms.Resize(resize_to, antialias=True)
+        resized_images = []
+        for img in images:
+            # Convert numpy array to tensor for resizing
+            if isinstance(img, np.ndarray):
+                # Handle different image formats
+                if img.ndim == 2:  # Grayscale
+                    img_tensor = torch.from_numpy(img).unsqueeze(0).float()
+                elif img.ndim == 3:  # RGB/BGR
+                    img_tensor = torch.from_numpy(img.transpose(2, 0, 1)).float()
+                else:
+                    raise ValueError(f"Unsupported image shape: {img.shape}")
+                
+                # Resize and convert back to numpy
+                resized = resizer(img_tensor)
+                if resized.shape[0] == 1:  # Grayscale
+                    resized = resized.squeeze(0).numpy()
+                else:  # RGB/BGR
+                    resized = resized.permute(1, 2, 0).numpy()
+                resized_images.append(resized)
+            else:
+                raise TypeError(f"Unsupported image type: {type(img)}")
+        images = resized_images
+    
+    # Normalize images to [0, 1] if needed
+    normalized_images = []
+    for img in images:
+        if img.dtype == np.uint8:
+            normalized_images.append(img / 255.0)
+        else:
+            # Check if normalization is needed
+            if img.max() > 1.0 or img.min() < 0.0:
+                img_min, img_max = img.min(), img.max()
+                if img_max > img_min:  # Avoid division by zero
+                    img = (img - img_min) / (img_max - img_min)
+            normalized_images.append(img)
+    images = normalized_images
+    
+    # Calculate layout
+    num_images = len(images)
+    num_rows = (num_images + num_cols - 1) // num_cols  # Ceiling division
+    
+    # Calculate appropriate figure size if not provided
+    if figsize is None:
+        fig_width = num_cols * 3
+        fig_height = num_rows * 3
+        figsize = (fig_width, fig_height)
+    
+    # Create figure and axes
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=figsize)
+    
+    # Handle the case where there's only one row or column
+    if num_rows == 1 and num_cols == 1:
+        axes = np.array([axes])
+    elif num_rows == 1 or num_cols == 1:
+        axes = axes.flatten()
+    
+    # Display images
+    for i in range(num_rows * num_cols):
+        ax = axes.flat[i] if hasattr(axes, 'flat') else axes[i]
+        
+        if i < num_images:
+            img = images[i]
+            
+            # Determine colormap
+            img_cmap = cmap
+            if cmap is None and (img.ndim == 2 or (img.ndim == 3 and img.shape[2] == 1)):
+                img_cmap = 'gray'
+                if img.ndim == 3 and img.shape[2] == 1:
+                    img = img.squeeze(2)
+            
+            # Display image
+            ax.imshow(img, cmap=img_cmap)
+            
+            # Set title if provided
+            if titles is not None and i < len(titles):
+                ax.set_title(titles[i])
+            elif labels is not None and i < len(labels):
+                if isinstance(labels[i], torch.Tensor):
+                    label = labels[i].item()
+                else:
+                    label = labels[i]
+                ax.set_title(f"Class: {label}")
+        
+        # Remove axis
+        ax.axis('off')
+    
+    # Adjust layout
+    plt.tight_layout()
+    
+    # Save if path provided
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    
+    # Show figure
+    plt.show()  
+
+# example
+# random_images = torch.rand(8, 3, 128, 128)  # 8 RGB images
+# visualize_images(random_images, num_cols=4, titles=[f"Image {i+1}" for i in range(8)])    
+

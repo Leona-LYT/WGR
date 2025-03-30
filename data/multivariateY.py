@@ -3,10 +3,10 @@ import numpy as np
 import math
 from torch.distributions.multivariate_normal import MultivariateNormal
 
-# Independent Gussian Mixture Model
-def generate_Gussian_mixture_data(X=None, n_samples=10000):
+# Independent Gaussian Mixture Model
+def generate_Gaussian_mixture_data(X=None, n_samples=10000):
     """
-    Generate data for Independent Gussian Mixture Model
+    Generate data for Independent Gaussian Mixture Model
     
     Parameters:
     X (torch.Tensor, optional): Default X input. If None, randomly generated

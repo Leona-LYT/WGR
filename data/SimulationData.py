@@ -126,14 +126,14 @@ class DataGenerator:
 # =============================================================================
 # data generator for visualization
 # =============================================================================
-def generate_multi_responses_multiY(x_value, n_responses=100, data_type="gaussian_mixture"):
+def generate_multi_responses_multiY(x_value, n_responses=100, model_type="gaussian_mixture"):
     """
     Generate multiple Y responses for a single X value using different data generation functions.
     
     Parameters:
     x_value (float): The X value to generate responses for
     n_responses (int): Number of different responses to generate
-    data_type (str): Type of data to generate - "gaussian_mixture", "involute", or "octagon"
+    model_type (str): Type of data to generate - "M3"(gaussian_mixture), "M4"(involute), or "SM4"(octagon)
     
     Returns:
     Y: Y contains n_responses 2D coordinates
@@ -142,13 +142,13 @@ def generate_multi_responses_multiY(x_value, n_responses=100, data_type="gaussia
     X = torch.full((n_responses,), x_value)
     
     # Select the appropriate data generation function
-    if data_type == "gaussian_mixture":
+    if model_type == "M3":
         _, Y = generate_Gaussian_mixture_data(X=X, n_samples=n_responses)
-    elif data_type == "involute":
+    elif model_type == "M4":
         _, Y = generate_involute_data(X=X, n_samples=n_responses)
-    elif data_type == "octagon":
+    elif model_type == "SM4":
         _, Y = generate_octagon_data(X=X, n_samples=n_responses)
     else:
-        raise ValueError(f"Unknown data type: {data_type}. Choose from 'gaussian_mixture', 'involute', or 'octagon'.")
+        raise ValueError(f"Unknown model type: {model_type}. Choose from 'M3', 'M4', or 'SM4'.")
     
     return Y

@@ -1,25 +1,61 @@
 import torch
 from scipy.stats import norm
 from scipy.stats import lognorm
+import math
+
+
 # =============================================================================
-# MSE of conditional mean and conditional standard deviation
+# L1 and L2 error, MSE of conditional mean and conditional standard deviation
 # =============================================================================
-def MSE_mean_sd_G_uniY(G,J_t_size, model_type="M1"):
+def L1L2_MSE_mean_sd_G(G, J_t_size=50, model_type="M1", Ydim=1, loader_dataset = loader_test, is_multivariate=False):
+    """
+    Calculate L1 and L2 error ,MSE of the conditional mean and conditional standard deviation for both univariate and multivariate Y.
+    
+    Parameters:
+        G (torch.nn.Module): Generator model
+        J_t_size (int): Number of samples to generate for each input
+        model_type (str): Type of model to evaluate ('M1', 'M2', 'M3', 'M4', 'SM1', 'SM2', 'SM3', 'SM4')
+        Ydim (int): Dimension of the output Y (1 for univariate, >1 for multivariate)
+        loader_dataset (DataLoader): Data loader for test data
+        is_multivariate (bool): Whether to use multivariate evaluation logic
+    
+    Returns:
+        tuple: Mean L1 loss, mean L2 loss, MSE of mean, MSE of standard deviation
+    """
     with torch.no_grad():
+        loader = loader_test if not is_multivariate else loader_val
         num_batches = test_size // batch_size
-        val_L1 = torch.zeros(num_batches)
-        val_L2 = torch.zeros(num_batches)
-        mse_mean = torch.zeros(num_batches)
-        mse_sd = torch.zeros(num_batches)
         
-        for batch_idx, (x, y) in enumerate(loader_test):
-            # Generate multiple outputs with different noise
-            outputs = torch.stack([
-                G(torch.cat([x, sample_noise(x.size(0), args.noise)], dim=1)).view(x.size(0))
-                for _ in range(J_t_size)
-            ])
+        # Initialize metrics tensors with appropriate dimensions
+        val_L1 = torch.zeros(num_batches, Ydim)
+        val_L2 = torch.zeros(num_batches, Ydim)
+        mse_mean = torch.zeros(num_batches, Ydim)
+        mse_sd = torch.zeros(num_batches, Ydim)
+        
+        for batch_idx, (x, y) in enumerate(loader):
+            # Generate samples - method depends on whether it's multivariate or not
+            if is_multivariate:
+                output = torch.zeros([J_t_size, batch_size, Ydim])
+                for i in range(J_t_size):
+                    eta = sample_noise(x.size(0), noise_dim)
+                    g_input = torch.cat([x.view(x.size(0), 1), eta], dim=1)
+                    output[i] = G(g_input).detach()
+            else:
+                # More efficient method for univariate case using list comprehension
+                outputs = torch.stack([
+                    G(torch.cat([x, sample_noise(x.size(0), args.noise)], dim=1)).view(x.size(0))
+                    for _ in range(J_t_size)
+                ])
+                
+            # Calculate sample statistics
+            if is_multivariate:
+                output_mean = output.mean(dim=0)
+                output_sd = ((output - output_mean)**2).mean(dim=0).sqrt()
+            else:
+                output_mean = outputs.mean(dim=0)
+                output_sd = ((outputs - output_mean)**2).mean(dim=0).sqrt()
             
-            # Calculate ground truth mean and standard deviation based on model type
+            # Set conditional mean and standard deviation based on model type
             if model_type == "M1":
                 y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + x[:,3] - x[:,4]
                 y_sd = torch.sqrt(0.5 + x[:,1]**2/2 + x[:,4]**2/2)
@@ -28,6 +64,12 @@ def MSE_mean_sd_G_uniY(G,J_t_size, model_type="M1"):
                 x_si = x @ beta
                 y_test = x_si**2 + torch.sin(x_si.abs()) + 2*torch.exp(-0.5)
                 y_sd = torch.sqrt(2*(1+torch.exp(-0.5)))
+            elif model_type == "M3":
+                y_test = x if is_multivariate else None
+                y_sd = torch.sqrt(torch.tensor(8/3))
+            elif model_type == "M4":
+                y_test = 2*x if is_multivariate else None
+                y_sd = torch.sqrt(torch.tensor((math.pi**2/3 + 0.4**2)))
             elif model_type == "SM1":
                 y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
                 y_sd = torch.ones_like(y_test)
@@ -38,44 +80,63 @@ def MSE_mean_sd_G_uniY(G,J_t_size, model_type="M1"):
                 A = 5 + x[:,0]**2/3 + x[:,1]**2 + x[:,2]**2 + x[:,3] + x[:,4]
                 y_test = A * np.exp(0.0625)
                 y_sd = torch.sqrt(A**2 * (np.exp(0.25) - np.exp(0.125)))
+            elif model_type == "SM4":
+                y_test = x if is_multivariate else None
+                y_sd = torch.sqrt(torch.tensor(5 + 0.5*0.16**2))
+            else:
+                raise ValueError(f"Unknown model type: {model_type}")
             
-            # Calculate output mean and standard deviation
-            output_mean = outputs.mean(dim=0)
-            output_sd = ((outputs - output_mean)**2).mean(dim=0).sqrt()
-            
-            # Compute metrics
-            val_L1[batch_idx] = l1_loss(output_mean, y)
-            val_L2[batch_idx] = l2_loss(output_mean, y)
-            mse_mean[batch_idx] = ((output_mean - y_test)**2).mean()
-            mse_sd[batch_idx] = ((output_sd - y_sd)**2).mean()
+            # Calculate metrics based on whether it's multivariate or not
+            if is_multivariate:
+                val_L1[batch_idx] = torch.mean(torch.abs(output_mean - y), dim=0)
+                val_L2[batch_idx] = torch.mean((output_mean - y)**2, dim=0)
+                mse_mean[batch_idx] = torch.mean((output_mean - y_test)**2, dim=0)
+                mse_sd[batch_idx] = torch.mean((output_sd - y_sd)**2, dim=0)
+            else:
+                val_L1[batch_idx] = torch.mean(torch.abs(output_mean - y))
+                val_L2[batch_idx] = torch.mean((output_mean - y)**2)
+                mse_mean[batch_idx] = torch.mean((output_mean - y_test)**2)
+                mse_sd[batch_idx] = torch.mean((output_sd - y_sd)**2)
         
-        # Calculate average metrics
-        metrics = [m.mean().detach().item() for m in [val_L1, val_L2, mse_mean, mse_sd]]
-        print(f"L1: {metrics[0]:.4f}, L2: {metrics[1]:.4f}, MSE_mean: {metrics[2]:.4f}, MSE_sd: {metrics[3]:.4f}")
+        # Calculate mean metrics across batches
+        mean_val_L1 = torch.mean(val_L1, dim=0)
+        mean_val_L2 = torch.mean(val_L2, dim=0)
+        mean_mse_mean = torch.mean(mse_mean, dim=0)
+        mean_mse_sd = torch.mean(mse_sd, dim=0)
         
-        return metrics
-
+        # Print results
+        print(f"Model: {model_type}, {'Multivariate' if is_multivariate else 'Univariate'}, Ydim: {Ydim}, J_t_size: {J_t_size}")
+        print(f"L1 Loss: {mean_val_L1}")
+        print(f"L2 Loss: {mean_val_L2}")
+        print(f"MSE Mean: {mean_mse_mean}")
+        print(f"MSE SD: {mean_mse_sd}")
+        
+        # Return means across all dimensions
+        return torch.mean(val_L1).detach().numpy(), torch.mean(val_L2).detach().numpy(), mse_mean.detach().mean().numpy(), mse_sd.detach().mean().numpy())
+        
 # =============================================================================
 # MSE of conditional quantile
 # =============================================================================
-def MSE_quantile_G_uniY(G,model_type="M1", num_samples=500):
+def MSE_quantile_G_uniY(G,model_type="M1", loader_dataset = loader_test, num_samples=500):
     """
-    Evaluate quantile predictions of generator G against true quantiles.
+    Evaluate the MSE of the conditional quantiles generated by G against true quantiles at different levels
     
     Args:
+        G (nn.Module): Generator model
         model_type: One of "M1", "M2", "SM1", "SM2", "SM3"
+        loader_dataset (DataLoader): Data loader for test data
         num_samples: Number of samples to draw from G for quantile estimation
     
     Returns:
         Tuple of MSE for 5%, 25%, 50%, 75%, and 95% quantiles
     """
-    quantiles = [0.05, 0.25, 0.50, 0.75, 0.95]
+    quantiles = [0.05, 0.25, 0.50, 0.75, 0.95] #default quantile levels
     
     with torch.no_grad():
         num_batches = test_size // batch_size
         Q_errors = {q: torch.zeros(num_batches) for q in quantiles}
         
-        for batch_idx, (x, y) in enumerate(loader_test):
+        for batch_idx, (x, y) in enumerate(loader_dataset):
             # Generate samples from G
             outputs = torch.stack([
                 G(torch.cat([x, sample_noise(x.size(0), args.noise)], dim=1)).view(x.size(0))
@@ -125,3 +186,70 @@ def MSE_quantile_G_uniY(G,model_type="M1", num_samples=500):
         print(result_str)
         
         return tuple(results)
+
+import torch
+
+def Quantile_multi_G(G, J_t_size, batch_size, loader_dataset = loader_test, model_type, Ydim=2):
+    """
+    Calculate quantile metrics for multivariate generator outputs.
+    
+    Parameters:
+        G (nn.Module): Generator model
+        J_t_size (int): Number of samples to generate for each input
+        batch_size (int): Batch size
+        loader_dataset (DataLoader): Data loader for test data
+        model_type (str): Type of model for generating responses
+        Ydim (int): Dimension of the output Y (default: 2)
+       
+    
+    Returns:
+        torch.Tensor: Stacked quantile metrics of shape [num_quantiles, Ydim]
+    """
+    quantiles=[0.05, 0.25, 0.50, 0.75, 0.95] #default quantile levels
+    
+    with torch.no_grad():
+        num_batches = test_size // batch_size
+        
+        # Initialize metrics for each quantile
+        Q_metrics = {q: torch.zeros(num_batches, Ydim) for q in quantiles}
+        
+        for batch_idx, (x, y) in enumerate(loader_dataset):
+            # Generate samples from the model
+            output = torch.zeros([J_t_size, batch_size, Ydim])
+            for i in range(J_t_size):
+                eta = sample_noise(x.size(0), noise_dim)
+                g_input = torch.cat([x.view(x.size(0), 1), eta], dim=1)
+                output[i] = G(g_input).detach()
+            
+            # Generate ground truth responses
+            generate_Y = torch.zeros([J_t_size, batch_size, Ydim])
+            for j in range(batch_size):
+                # Generate multiple responses for each x value
+                generate_Y[:, j, :] = generate_multi_responses_multiY(
+                    x[j].view([1]).item(), 
+                    n_responses=J_t_size, 
+                    model_type=model_type
+                )
+            
+            # Calculate metrics for each quantile
+            for q in quantiles:
+                # Calculate the model quantiles and ground truth quantiles
+                model_quantile = output.quantile(q, dim=0)  # shape: [batch_size, Ydim]
+                true_quantile = generate_Y.quantile(q, dim=0)  # shape: [batch_size, Ydim]
+                
+                # Calculate the mean squared error for each dimension
+                Q_metrics[q][batch_idx] = torch.mean((model_quantile - true_quantile)**2, dim=0)
+        
+        # Calculate average metrics across batches
+        Q_result = [torch.mean(Q_metrics[q], dim=0) for q in quantiles]
+        
+        # Print the results
+        print(f"Quantile evaluation for model: {model_type}, Ydim: {Ydim}")
+        for i, q in enumerate(quantiles):
+            print(f"Quantile {q:.2f}: {Q_result[i]}")
+        
+        # Stack and return results
+        Q_stacked = torch.stack(Q_result).detach()
+        return Q_stacked
+
+

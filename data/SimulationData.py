@@ -123,4 +123,32 @@ class DataGenerator:
     
         return self._split_datasets(X, Y)
         
-  
+# =============================================================================
+# data generator for visualization
+# =============================================================================
+def generate_multi_responses_multiY(x_value, n_responses=100, data_type="gaussian_mixture"):
+    """
+    Generate multiple Y responses for a single X value using different data generation functions.
+    
+    Parameters:
+    x_value (float): The X value to generate responses for
+    n_responses (int): Number of different responses to generate
+    data_type (str): Type of data to generate - "gaussian_mixture", "involute", or "octagon"
+    
+    Returns:
+    tuple: (X, Y) where X is the repeated input and Y contains n_responses 2D coordinates
+    """
+    # Create a tensor with the x_value repeated n_responses times
+    X = torch.full((n_responses,), x_value)
+    
+    # Select the appropriate data generation function
+    if data_type == "gaussian_mixture":
+        _, Y = generate_Gaussian_mixture_data(X=X, n_samples=n_responses)
+    elif data_type == "involute":
+        _, Y = generate_involute_data(X=X, n_samples=n_responses)
+    elif data_type == "octagon":
+        _, Y = generate_octagon_data(X=X, n_samples=n_responses)
+    else:
+        raise ValueError(f"Unknown data type: {data_type}. Choose from 'gaussian_mixture', 'involute', or 'octagon'.")
+    
+    return Y

@@ -1,6 +1,6 @@
 import torch
 import torch.distributions as dist
-from multivariateY import generate_Gussian_mixture_data, generate_involute_data, generate_octagon_data
+from multivariateY import generate_Gaussian_mixture_data, generate_involute_data, generate_octagon_data
 
 # =============================================================================
 # Data generation models
@@ -76,8 +76,8 @@ class DataGenerator:
         return self._generate_dataset(gen_eps, gen_Y)
         
     def _generate_M3_data(self): 
-        """Generate data for M3 model (independ gussian mixture)"""
-        X, Y = generate_Gussian_mixture_data(n_samples=self.args.train + self.args.val + self.args.test)
+        """Generate data for M3 model (independ Gaussian mixture)"""
+        X, Y = generate_Gaussian_mixture_data(n_samples=self.args.train + self.args.val + self.args.test)
     
         return self._split_datasets(X, Y)
         

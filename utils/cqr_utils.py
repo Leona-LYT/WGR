@@ -12,7 +12,7 @@ def train_quantile_net(X_train, y_train, alpha=0.1, epochs=200, lr=0.001):
     
     X_train_tensor = torch.FloatTensor(X_train)
     y_train_tensor = torch.FloatTensor(y_train).unsqueeze(1)
-    
+
     for epoch in range(epochs):
         model.train()
         optimizer.zero_grad()

@@ -1,7 +1,7 @@
 # =============================================================================
 # validation
 # =============================================================================
-def val_G(G, loader_val, noise_dim, num_samples=100, device='cuda', 
+def val_G(G, loader_val, noise_dim, Ydim, num_samples=100, device='cuda', 
           loss_functions=None, multivariate=False, reshape_input=False):
     """
     Validate generator performance using L1 and L2 losses.
@@ -25,16 +25,9 @@ def val_G(G, loader_val, noise_dim, num_samples=100, device='cuda',
     num_batches = len(loader_val)
     
     # Initialize loss tensors based on output dimensionality
-    if multivariate:
-        # For the first batch, determine output dimensionality
-        sample_x, sample_y = next(iter(loader_val))
-        output_dim = sample_y.size(1)
-        val_L1 = torch.zeros(num_batches, output_dim, device=device)
-        val_L2 = torch.zeros(num_batches, output_dim, device=device)
-    else:
-        val_L1 = torch.zeros(num_batches, device=device)
-        val_L2 = torch.zeros(num_batches, device=device)
-    
+    val_L1 = torch.zeros(num_batches, Ydim, device=device)
+    val_L2 = torch.zeros(num_batches, Ydim, device=device)
+   
     # Reset data loader iterator if we used it to check dimensions
     loader_val_iter = iter(loader_val)
     

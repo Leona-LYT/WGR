@@ -86,9 +86,6 @@ def generate_involute_data(X=None, n_samples=10000):
     return X, Y
 
 # Octagon Gaussian Model
-
-
-# Octagon Gaussian Model
 def generate_octagon_data(X=None, n_samples=10000):
     """
     Generate data points forming an octagon pattern.

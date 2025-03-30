@@ -136,7 +136,7 @@ def generate_multi_responses_multiY(x_value, n_responses=100, data_type="gaussia
     data_type (str): Type of data to generate - "gaussian_mixture", "involute", or "octagon"
     
     Returns:
-    tuple: (X, Y) where X is the repeated input and Y contains n_responses 2D coordinates
+    Y: Y contains n_responses 2D coordinates
     """
     # Create a tensor with the x_value repeated n_responses times
     X = torch.full((n_responses,), x_value)

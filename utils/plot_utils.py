@@ -22,9 +22,6 @@ def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05,
     levels (int): Number of contour levels
     fig_size (tuple): Figure size (width, height) in inches
     title (str): Optional title for the plot
-    
-    Returns:
-    fig, ax: The matplotlib figure and axis objects
     """
     
     # Create a new figure

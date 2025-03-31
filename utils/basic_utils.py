@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import random
 import numpy as np
-
+import torch.distributions as dist
+ 
 #Random seeds
 def set_random_seed(seed):
     random.seed(seed)
@@ -10,6 +11,60 @@ def set_random_seed(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.cuda.manual_seed(seed)
+
+# =============================================================================
+# noise generation
+# =============================================================================
+def sample_noise(size, dim, distribution='gaussian', mu=None, cov=None, a=None, b=None, loc=None, scale=None):
+    """
+    Generate noise samples from various distributions.
+    
+    Parameters:
+        size (int): Number of samples to generate
+        dim (int): Dimension of each noise sample
+        distribution (str): Distribution type ('gaussian', 'multivariate_gaussian', 'uniform', 'laplace')
+        mu (torch.Tensor): Mean vector for multivariate Gaussian
+        cov (torch.Tensor): Covariance matrix for multivariate Gaussian
+        a (float): Lower bound for uniform distribution
+        b (float): Upper bound for uniform distribution
+        loc (torch.Tensor): Location parameter for Laplace distribution
+        scale (torch.Tensor): Scale parameter for Laplace distribution
+    
+    Returns:
+        torch.Tensor: Noise samples of shape [size, dim]
+    """
+    if distribution == 'gaussian':
+        # Standard Gaussian
+        return torch.randn(size, dim)
+    
+    elif distribution == 'multivariate_gaussian':
+        # Multivariate Gaussian
+        if mu is None:
+            mu = torch.zeros(dim)
+        if cov is None:
+            cov = torch.eye(dim)
+        mvn = torch.distributions.MultivariateNormal(loc=mu, covariance_matrix=cov)
+        return mvn.sample((size,))
+    
+    elif distribution == 'uniform':
+        # Uniform distribution
+        if a is None:
+            a = 0.0
+        if b is None:
+            b = 1.0
+        return a + (b - a) * torch.rand(size, dim)
+    
+    elif distribution == 'laplace':
+        # Laplace distribution
+        if loc is None:
+            loc = torch.zeros(dim)
+        if scale is None:
+            scale = torch.ones(dim)
+        laplace_dist = torch.distributions.Laplace(loc, scale)
+        return laplace_dist.sample((size,))
+    
+    else:
+        raise ValueError(f"Unknown distribution: {distribution}. Supported types are: 'gaussian', 'multivariate_gaussian', 'uniform', 'laplace'")
 
 def reset_grad():
     D_solver.zero_grad()

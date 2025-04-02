@@ -1,8 +1,7 @@
 # =============================================================================
 # validation
 # =============================================================================
-def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cpu', 
-           multivariate=False, reshape_input=False):
+def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', multivariate=False):
     """
     Validate generator performance using L1 and L2 losses.
     Handles both univariate and multivariate outputs.
@@ -15,7 +14,6 @@ def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cpu',
         device: Device to run validation on ('cuda' or 'cpu')
         loss_functions: Custom loss functions as dict with 'l1' and 'l2' keys (optional)
         multivariate: Whether the output is multivariate (default: False)
-        reshape_input: Whether to reshape input with .view(x.size(0), 1) (default: False)
         
     Returns:
         tuple: Mean L1 and L2 losses as numpy values
@@ -46,10 +44,7 @@ def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cpu',
                 eta = sample_noise(x.size(0), noise_dim).to(device)
                 
                 # Handle input reshaping if needed
-                if reshape_input:
-                    g_input = torch.cat([x.view(x.size(0), 1), eta], dim=1)
-                else:
-                    g_input = torch.cat([x, eta], dim=1)
+                g_input = torch.cat([x.view(x.size(0), Xdim), eta], dim=1)
                 
                 # Get generator output
                 output = G(g_input)

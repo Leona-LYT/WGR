@@ -1,7 +1,7 @@
 # =============================================================================
 # validation
 # =============================================================================
-def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cuda', 
+def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cpu', 
            multivariate=False, reshape_input=False):
     """
     Validate generator performance using L1 and L2 losses.

@@ -189,7 +189,7 @@ def MSE_quantile_G_uniY(G, J_t_size=500, batch_size=100, model_type="M1", loader
 
 import torch
 
-def MSE_quantile_G_multiY(G, J_t_size, batch_size, loader_dataset = loader_test, model_type, Ydim=2):
+def MSE_quantile_G_multiY(G, J_t_size, batch_size, model_type, loader_dataset = loader_test, Ydim=2):
     """
     Calculate quantile metrics for multivariate generator outputs.
     

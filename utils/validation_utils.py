@@ -2,7 +2,7 @@
 # validation
 # =============================================================================
 def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cuda', 
-          loss_functions=None, multivariate=False, reshape_input=False):
+           multivariate=False, reshape_input=False):
     """
     Validate generator performance using L1 and L2 losses.
     Handles both univariate and multivariate outputs.
@@ -65,18 +65,12 @@ def val_G(G, loader_data, noise_dim, Ydim, num_samples=100, device='cuda',
             mean_output = stacked_outputs.mean(dim=0)
             
             # Calculate losses
-            if loss_functions is not None:
-                # Use provided loss functions
-                val_L1[batch_idx] = loss_functions['l1'](mean_output, y)
-                val_L2[batch_idx] = loss_functions['l2'](mean_output, y)
+            if multivariate:
+                 val_L1[batch_idx] = torch.mean(torch.abs(mean_output - y), dim=0)
+                 val_L2[batch_idx] = torch.mean((mean_output - y)**2, dim=0)
             else:
-                # Use default loss calculations
-                if multivariate:
-                    val_L1[batch_idx] = torch.mean(torch.abs(mean_output - y), dim=0)
-                    val_L2[batch_idx] = torch.mean((mean_output - y)**2, dim=0)
-                else:
-                    val_L1[batch_idx] = torch.mean(torch.abs(mean_output - y))
-                    val_L2[batch_idx] = torch.mean((mean_output - y)**2)
+                 val_L1[batch_idx] = torch.mean(torch.abs(mean_output - y))
+                 val_L2[batch_idx] = torch.mean((mean_output - y)**2)
     
     # Compute mean losses across all batches
     if multivariate:

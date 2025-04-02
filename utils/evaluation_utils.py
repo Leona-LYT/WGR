@@ -60,7 +60,7 @@ def L1L2_MSE_mean_sd_G(G, J_t_size=50, model_type="M1", Ydim=1, loader_dataset =
                 y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + x[:,3] - x[:,4]
                 y_sd = torch.sqrt(0.5 + x[:,1]**2/2 + x[:,4]**2/2)
             elif model_type == "M2":
-                beta = torch.tensor([1, 1, -1, -1, 1] + [0]*95).float()
+                beta = torch.tensor([1, 1, -1, -1, 1] + [0]*(args.Xdim-5)).float()
                 x_si = x @ beta
                 y_test = x_si**2 + torch.sin(x_si.abs()) + 2*torch.exp(-0.5)
                 y_sd = torch.sqrt(2*(1+torch.exp(-0.5)))

@@ -108,7 +108,7 @@ def reset_grad():
 
 
 def calculate_gradient_penalty(model, real_images, fake_images, device):
-    """Calculates the gradient penalty loss for WGAN GP"""
+    """Calculates the gradient penalty loss for WGAN"""
     # Random weight term for interpolation between real and fake data
     alpha = torch.randn((real_images.size(0), 1), device=device)
     # Get random interpolation between real and fake data

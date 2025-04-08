@@ -1,6 +1,6 @@
 import torch
 import torch.distributions as dist
-from multivariateY import generate_Gaussian_mixture_data, generate_involute_data, generate_octagon_data
+from .multivariateY import generate_Gaussian_mixture_data, generate_involute_data, generate_octagon_data
 
 # =============================================================================
 # Data generation models

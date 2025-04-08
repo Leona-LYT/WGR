@@ -70,17 +70,17 @@ def sample_noise(size, dim, distribution='gaussian', mu=None, cov=None, a=None, 
 # =============================================================================
 # evaluation on the selection of m
 # =============================================================================
-def selection_m(G, loader_data=loader_train, noise_dim, Xdim, Ydim, train_size, num_samples=100, device='cuda', multivariate=False):
+def selection_m(G, noise_dim, Xdim, Ydim, train_size, loader_data=loader_train, num_samples=100, device='cuda', multivariate=False):
     """
     Calculate selection criterion for m, which is the dimension of noise vector eta.
     
     Args:
         G: Generator model (well-trained generator with different m)
-        loader_data: Data loader for selection m (default: training data)
         noise_dim: Dimension of noise vector
         Xdim: Dimension of input features
         Ydim: Dimension of output Y
         train_size: Number of training samples
+        loader_data: Data loader for selection m (default: training data)
         num_samples: Number of samples to generate per input, which is used to compute the first term of the criterion(default: 100)
         device: Device to run validation on (default: 'cuda')
         multivariate: Whether the response Y is multivariate (default: False)

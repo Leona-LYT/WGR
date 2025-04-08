@@ -21,3 +21,12 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+import argparse
+
+"""
+if working on jupyter notebook, add the following code:
+
+if 'ipykernel_launcher.py' in sys.argv[0]: 
+    import sys
+    sys.argv = [sys.argv[0]] 
+"""    

@@ -7,7 +7,7 @@ import math
 # =============================================================================
 # L1 and L2 error, MSE of conditional mean and conditional standard deviation
 # =============================================================================
-def L1L2_MSE_mean_sd_G(G,  loader_dataset, J_t_size=50, model_type="M1", Ydim=1, is_multivariate=False):
+def L1L2_MSE_mean_sd_G(G, loader_dataset, J_t_size=50, model_type="M1", Ydim=1, is_multivariate=False):
     """
     Calculate L1 and L2 error ,MSE of the conditional mean and conditional standard deviation for both univariate and multivariate Y.
     
@@ -23,7 +23,7 @@ def L1L2_MSE_mean_sd_G(G,  loader_dataset, J_t_size=50, model_type="M1", Ydim=1,
         tuple: Mean L1 loss, mean L2 loss, MSE of mean, MSE of standard deviation
     """
     with torch.no_grad():
-        loader = loader_test if not is_multivariate else loader_val
+        
         num_batches = test_size // batch_size
         
         # Initialize metrics tensors with appropriate dimensions

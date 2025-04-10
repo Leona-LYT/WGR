@@ -5,9 +5,12 @@ Our current implementation depends on the following Python packages:
 ## 📦 Python Module Versions
 
 ```txt
-numpy==1.24.3  
-pandas==2.1.0  
-scikit-learn==1.3.1  
-matplotlib==3.7.2  
-seaborn==0.12.2  
-xgboost==1.7.6  
+numpy==2.1.3
+pandas==2.2.3
+scipy==1.14.1
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+argparse==1.1  
+matplotlib==3.9.3
+PIL==10.4.0
+seaborn==0.13.2

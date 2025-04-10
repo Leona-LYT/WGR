@@ -18,7 +18,7 @@ def discriminator_fnn(input_dim, output_dim=1, hidden_dims=None, network_type='u
     
     Args:
         input_dim (int): Dimension of input features.
-        output_dim (int): Dimension of output. Default is 1 for binary classification.
+        output_dim (int): Dimension of output. (Default: 1)
         hidden_dims (list): List of hidden layer dimensions.
                            Default configurations:
                            - Univariate: [64, 32]

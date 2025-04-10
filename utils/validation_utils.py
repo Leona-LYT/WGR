@@ -1,6 +1,6 @@
-# =============================================================================
-# validation
-# =============================================================================
+import torch
+from utils.basic_utils import  sample_noise 
+
 def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', multivariate=False):
     """
     Validate generator performance using L1 and L2 losses.

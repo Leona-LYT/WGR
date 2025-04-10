@@ -1,5 +1,5 @@
 def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Ydim, 
-                  batch_size, rep_count, J_size=50, noise_distribution='gaussian', multivariate=False,
+                  batch_size, J_size=50, noise_distribution='gaussian', multivariate=False,
                   lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
                   num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
                   lr_decay_step=None, lr_decay_gamma=0.1):
@@ -16,7 +16,6 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         noise_dim: Dimension of noise vector
         Ydim: Dimension of output Y
         batch_size: Batch size
-        rep_count: Repetition count
         J_size: Generator projection size (default: 50)
         noise_distribution: Distribution for noise sampling (default: 'gaussian')
         lambda_w: Weight for Wasserstein loss (default: 0.9)

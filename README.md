@@ -2,7 +2,7 @@
 Code for the paper "Wasserstein Generative Regression"
 
 Our current implementation depends on the following Python packages:
-# 📦 Python Module Versions
+## 📦 Python Module Versions
 
 ```txt
 numpy==1.24.3  

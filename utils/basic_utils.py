@@ -148,8 +148,6 @@ def generator_loss(logits_fake):
 
     return loss
 
-l1_loss = nn.L1Loss()  # loss(input,target)
-l2_loss = nn.MSELoss()
 
 # =============================================================================
 # blocks for network architecture

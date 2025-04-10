@@ -10,7 +10,7 @@ from utils.basic_utils import Flatten, Unflatten
 # =============================================================================
 # feedforward networks
 # =============================================================================
-def discriminator_fnn(input_dim=None, output_dim=1, hidden_dims=None, network_type='univariate', flatten=False, leaky_relu_slope=0.01):
+def discriminator_fnn(input_dim, output_dim=1, hidden_dims=None, network_type='univariate', flatten=False, leaky_relu_slope=0.01):
     """
     A flexible discriminator model that can be configured for different use cases.
     The FNNs are considered for tabular data and MNIST.
@@ -18,7 +18,6 @@ def discriminator_fnn(input_dim=None, output_dim=1, hidden_dims=None, network_ty
     
     Args:
         input_dim (int): Dimension of input features.
-                         If None, will use Xdim + Ydim for both univariate and multivariate responses
         output_dim (int): Dimension of output. Default is 1 for binary classification.
         hidden_dims (list): List of hidden layer dimensions.
                            Default configurations:
@@ -37,13 +36,6 @@ def discriminator_fnn(input_dim=None, output_dim=1, hidden_dims=None, network_ty
     # Add flatten layer if specified or if using MNIST type
     if flatten or network_type == 'mnist':
         layers.append(Flatten())
-    
-    # Configure default settings based on input dimension
-    if input_dim is None:
-        if 'args' in globals() and hasattr(args, 'Xdim'):
-            input_dim = args.Xdim + args.Ydim  # Use args.Xdim + args.Ydim for both univariate and multivariate
-        elif network_type == 'mnist':
-            input_dim = 784  # Default for MNIST
     
     # Set default hidden dimensions based on network type
     if hidden_dims is None:

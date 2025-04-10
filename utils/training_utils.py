@@ -1,8 +1,17 @@
-def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Ydim, 
-                  batch_size, J_size=50, noise_distribution='gaussian', multivariate=False,
+import os
+import copy
+import torch
+import numpy as np
+from utils.validation_utils import val_G
+from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penalty, discriminator_loss, generator_loss
+
+
+
+def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Xdim, Ydim, 
+                  batch_size,  J_size=50, noise_distribution='gaussian', multivariate=False,
                   lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
                   num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
-                  lr_decay_step=None, lr_decay_gamma=0.1):
+                  lr_decay_step=5, lr_decay_gamma=0.1):
     """
     Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
     
@@ -14,7 +23,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         loader_train: Data loader for training set
         loader_val: Data loader for validation set
         noise_dim: Dimension of noise vector
-        Ydim: Dimension of output Y
+        Xdim: Dimension of covariate X
+        Ydim: Dimension of response Y
         batch_size: Batch size
         J_size: Generator projection size (default: 50)
         noise_distribution: Distribution for noise sampling (default: 'gaussian')
@@ -42,8 +52,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
     
     # Initialize counters and metrics
     iter_count = 0
-    l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate, reshape_input=False)
-    
+    l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim, Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate )
+                         
     # Save initial model state
     best_acc = l2_acc
     best_model_g = copy.deepcopy(G.state_dict())
@@ -58,9 +68,9 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             G_solver, step_size=lr_decay_step, gamma=lr_decay_gamma)
     elif lr_decay == 'plateau':
         D_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            D_solver, mode='min', factor=lr_decay_gamma, patience=lr_decay_step, verbose=True)
+            D_solver, mode='min', factor=lr_decay_gamma, patience=lr_decay_step )
         G_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            G_solver, mode='min', factor=lr_decay_gamma, patience=lr_decay_step, verbose=True)
+            G_solver, mode='min', factor=lr_decay_gamma, patience=lr_decay_step )
     elif lr_decay == 'cosine':
         D_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             D_solver, T_max=num_epochs, eta_min=0)
@@ -121,7 +131,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                     g_output[i] = G(g_input_i).view(batch_size)
 
             # Calculate L2 loss between mean prediction and target
-            g_error_l = l2_loss(g_output.mean(dim=0), y.view(batch_size))
+            g_error_l = torch.mean((g_output.mean(dim=0) - y.view(batch_size))**2)
 
             # Combined loss with wasserstein and L2 regularization
             g_error = lambda_w * g_error_w + lambda_l * g_error_l
@@ -135,7 +145,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             
             # Validate and save best model
             if (iter_count >= start_eva) and (iter_count % eva_iter == 0):
-                l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate, reshape_input=False)
+                l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim,  Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate )
                 
                 print(f"Epoch {epoch}, Iter {iter_count}, "
                       f"D Loss: {np.mean(d_losses):.4f}, G Loss: {np.mean(g_losses):.4f}, "
@@ -148,8 +158,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                     best_model_d = copy.deepcopy(D.state_dict())
                     
                     # Save models
-                    torch.save(G.state_dict(), f"{save_path}/G_best.pth")
-                    torch.save(D.state_dict(), f"{save_path}/D_best.pth")
+                    torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_best.pth")
+                    torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_best.pth")
                     print(f"Saved best model with L2: {best_acc:.4f}")
         
         # Apply learning rate decay at the end of each epoch
@@ -158,7 +168,9 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         
         print(f"Epoch {epoch} - "
               f"D Loss: {epoch_d_loss:.4f}, G Loss: {epoch_g_loss:.4f}")
-        
+
+        valid_loss = epoch_d_loss if epoch_d_loss is not None else float('inf')
+
         if lr_decay == 'step' or lr_decay == 'cosine':
             if D_scheduler is not None:
                 D_scheduler.step()
@@ -166,7 +178,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                 G_scheduler.step()
         elif lr_decay == 'plateau':
             if D_scheduler is not None:
-                D_scheduler.step(epoch_d_loss)
+                D_scheduler.step(valid_loss)
             if G_scheduler is not None:
                 G_scheduler.step(l2_acc)  # Use validation L2 for generator
         
@@ -180,4 +192,4 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
     G.load_state_dict(best_model_g)
     D.load_state_dict(best_model_d)
     
-    return best_acc, G, D
+    return G, D

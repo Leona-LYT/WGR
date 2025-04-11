@@ -18,7 +18,4 @@ seaborn==0.13.2
 
 ## 📁 Project Structure 
 The structure of this repository is as follows:
- ```
-WGR/ ├── data/ │ ├── raw/ │ └── processed/ ├── notebooks/ │ └── analysis.ipynb ├── src/ │ ├── __init__.py │
-├── utils.py │ └── model.py ├── requirements.txt ├── README.md └── main.py
-```
+``` my_project/ ├── data/ │ ├── raw/ │ └── processed/ ├── notebooks/ │ └── analysis.ipynb ├── src/ │ ├── __init__.py │ ├── utils.py │ └── model.py ├── requirements.txt ├── README.md └── main.py ``` 

@@ -1,8 +1,8 @@
 # Wasserstein Generative Regression
 Code for the paper "Wasserstein Generative Regression"
 
-Our current implementation depends on the following Python packages:
 ## 📦 Python Module Versions
+Our current implementation depends on the following Python packages:
 
 ```txt
 numpy==2.1.3
@@ -14,3 +14,8 @@ argparse==1.1
 matplotlib==3.9.3
 PIL==10.4.0
 seaborn==0.13.2
+
+## 📁 Project Structure 
+The structure of this repository is as follows:
+ ``` WGR/ ├── data/ │ ├── raw/ │ └── processed/ ├── notebooks/ │ └── analysis.ipynb ├── src/ │ ├── __init__.py │
+├── utils.py │ └── model.py ├── requirements.txt ├── README.md └── main.py ```

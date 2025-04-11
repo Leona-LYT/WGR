@@ -49,7 +49,7 @@ parser.add_argument('--train_batch', default=128, type=int, metavar='BS', help='
 parser.add_argument('--val_batch', default=100, type=int, metavar='BS', help='batch size while validation')
 parser.add_argument('--test_batch', default=100, type=int, metavar='BS', help='batch size while testing')
 parser.add_argument('--epochs', default=200, type=int, help='number of epochs to train')
-parser.add_argument('--reps', default=2, type=int, help='number of replications')
+parser.add_argument('--reps', default=100, type=int, help='number of replications')
 
 args = parser.parse_args()
 
@@ -67,7 +67,7 @@ def main():
     test_G_mean_sd = []  # Initialize as list
     test_G_quantile = []  # Initialize as list
 
-    for k in range(2):
+    for k in range(args.reps):
         print('============================ REPLICATION ==============================')
         print(k, seed[0])
 

@@ -1,5 +1,5 @@
 # Wasserstein Generative Regression
-Code for the paper "Wasserstein Generative Regression"
+The repository contains the code for the paper "Wasserstein Generative Regression"
 
 ## 📦 Python Module Versions
 Our current implementation depends on the following Python packages:
@@ -20,6 +20,7 @@ seaborn==0.13.2
 The structure of this repository is as follows:
 ``` 
 WGR/
+├── README.md
 ├── data/
 │     ├── CT.csv
 │     ├── UJIndoorLocData.csv
@@ -39,3 +40,8 @@ WGR/
 │     ├── training_utils.py
 │     ├── validation_utils.py
 ``` 
+- **data:** Original dataset used in training.
+- **model:** Pretrained ResNet50 architecture.
+- **output:** Prediction results are saved in `results/`.
+
+

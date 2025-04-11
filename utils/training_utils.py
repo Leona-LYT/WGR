@@ -158,8 +158,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                     best_model_d = copy.deepcopy(D.state_dict())
                     
                     # Save models
-                    torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_best.pth")
-                    torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_best.pth")
+                    torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_best.pth")
+                    torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_best.pth")
                     print(f"Saved best model with L2: {best_acc:.4f}")
         
         # Apply learning rate decay at the end of each epoch

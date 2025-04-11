@@ -56,9 +56,6 @@ args = parser.parse_args()
 print(args)
 
 # Set seed 
-# test_G_reps = torch.zeros([args.reps,4])
-# test_G_quantile = torch.zeros([args.reps,5])
-
 setup_seed(1234)
 reps=(args.reps,)
 seed = torch.randint(0, 10000, reps)  

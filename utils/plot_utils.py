@@ -8,7 +8,7 @@ import torch
 import torchvision.transforms as transforms
   
 def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05, 
-               bw_adjust=0.2, levels=6, fig_size=(8, 6), title=None):
+               bw_adjust=0.2, levels=6, fig_size=(8, 6), title=None,xlabel='Y1', ylabel='Y2'):
     """
     Create a 2D kernel density estimation plot for simulated multivariate response data (M4,SM3,SM4).
     
@@ -22,6 +22,8 @@ def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05,
     levels (int): Number of contour levels
     fig_size (tuple): Figure size (width, height) in inches
     title (str): Optional title for the plot
+    xlabel (str): Label for the x-axis
+    ylabel (str): Label for the y-axis
     """
     
     # Create a new figure
@@ -45,6 +47,10 @@ def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05,
     # Add title if provided
     if title:
         ax.set_title(title)
+        
+    # Add axis labels
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     
     # Return the figure and axis objects for further customization if needed
     return fig, ax

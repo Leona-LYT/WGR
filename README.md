@@ -18,4 +18,24 @@ seaborn==0.13.2
 
 ## 📁 Project Structure 
 The structure of this repository is as follows:
-``` my_project/ ├── data/ │ ├── raw/ │ └── processed/ ├── notebooks/ │ └── analysis.ipynb ├── src/ │ ├── __init__.py │ ├── utils.py │ └── model.py ├── requirements.txt ├── README.md └── main.py ``` 
+``` 
+WGR/
+├── data/
+│     ├── CT.csv
+│     ├── UJIndoorLocData.csv
+│     ├── SimulationData.py
+│     ├── image_data.py
+|     ├── multivariateY.py
+├── models/
+│     ├── BNN.py
+│     ├── discriminator.py
+│     ├── generator.py
+│     ├── regression_net.py
+├── utils/
+│     ├── basic_utils.py 
+│     ├── cqr_utils.py
+│     ├── evaluation_utils.py
+│     ├── plot_utils.py
+│     ├── training_utils.py
+│     ├── validation_utils.py
+``` 

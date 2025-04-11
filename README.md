@@ -14,8 +14,11 @@ argparse==1.1
 matplotlib==3.9.3
 PIL==10.4.0
 seaborn==0.13.2
+```
 
 ## 📁 Project Structure 
 The structure of this repository is as follows:
- ``` WGR/ ├── data/ │ ├── raw/ │ └── processed/ ├── notebooks/ │ └── analysis.ipynb ├── src/ │ ├── __init__.py │
-├── utils.py │ └── model.py ├── requirements.txt ├── README.md └── main.py ```
+ ```
+WGR/ ├── data/ │ ├── raw/ │ └── processed/ ├── notebooks/ │ └── analysis.ipynb ├── src/ │ ├── __init__.py │
+├── utils.py │ └── model.py ├── requirements.txt ├── README.md └── main.py
+```

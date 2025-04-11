@@ -54,43 +54,76 @@ args = parser.parse_args()
 print(args)
 
 # Set seed 
-setup_seed(5678)
+# test_G_reps = torch.zeros([args.reps,4])
+# test_G_quantile = torch.zeros([args.reps,5])
 
-# Generate data from M2
-data_gen = DataGenerator(args)
-DATA = data_gen.generate_data('M2')
-train_X, train_Y = DATA['train_X'], DATA['train_Y']
-val_X, val_Y = DATA['val_X'], DATA['val_Y']
-test_X, test_Y = DATA['test_X'], DATA['test_Y']
+setup_seed(1234)
+reps=(args.reps,)
+seed = torch.randint(0, 10000, args.reps)  
 
-# Create TensorDatasets and initialize a DataLoaders
-train_dataset = TensorDataset( train_X.float(), train_Y.float() )
-loader_train = DataLoader(train_dataset , batch_size=args.train_batch, shuffle=True)
+def main():
+    test_G_mean_sd = []  # Initialize as list
+    test_G_quantile = []  # Initialize as list
 
-val_dataset = TensorDataset( val_X.float(), val_Y.float() )
-loader_val = DataLoader(val_dataset , batch_size=args.val_batch, shuffle=True)
+    for k in range(args.reps):
+        print('============================ REPLICATION ==============================')
+        print(k, seed[0])
+        print("m: " + str(sorted_list[k]))
 
-test_dataset = TensorDataset( test_X.float(), test_Y.float() )
-loader_test  = DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
+        setup_seed(seed[0].detach().numpy().item())
+        
+        # Generate data from M2
+        data_gen = DataGenerator(args)
+        DATA = data_gen.generate_data('M2')
+        
+        train_X, train_Y = DATA['train_X'], DATA['train_Y']
+        val_X, val_Y = DATA['val_X'], DATA['val_Y']
+        test_X, test_Y = DATA['test_X'], DATA['test_Y']
 
-# Define generator network and discriminator network
-G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [64, 32])
-D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [64, 32])
+        # Create TensorDatasets and initialize a DataLoaders
+        train_dataset = TensorDataset( train_X.float(), train_Y.float() )
+        loader_train = DataLoader(train_dataset , batch_size=args.train_batch, shuffle=True)
 
-# Initialize RMSprop optimizers
-D_solver = optim.Adam(D_net.parameters(), lr=0.001, betas=(0.9, 0.999))
-G_solver = optim.Adam(G_net.parameters(), lr=0.001, betas=(0.9, 0.999))                    
+        val_dataset = TensorDataset( val_X.float(), val_Y.float() )
+        loader_val = DataLoader(val_dataset , batch_size=args.val_batch, shuffle=True)
 
-# Training
-trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, 
-                                     loader_train = loader_train, loader_val=loader_val,
-                                     noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, batch_size=args.train_batch,
-                                     save_path='./', model_type=args.model, device='cpu', num_epochs=50)
+        test_dataset = TensorDataset( test_X.float(), test_Y.float() )
+        loader_test  = DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
 
-# Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
-test_G_mean_sd = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim, Xdim=args.Xdim,
-                                    batch_size=args.test_batch,  model_type=args.model, loader_dataset = loader_test )
+        # Define generator network and discriminator network
+        G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [64, 32])
+        D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [64, 32])
 
-# Calculate the MSE of conditional quantiles at different levels.
-test_G_quantile = MSE_quantile_G_uniY(G = trained_G, loader_dataset = loader_test , noise_dim=args.noise_dim, Xdim=args.Xdim,
-                                      test_size = args.test,  batch_size=args.test_batch, model_type=args.model)
+        # Initialize RMSprop optimizers
+        D_solver = optim.Adam(D_net.parameters(), lr=0.001, betas=(0.9, 0.999))
+        G_solver = optim.Adam(G_net.parameters(), lr=0.001, betas=(0.9, 0.999))                    
+
+        # Training
+        trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
+                                             loader_val=loader_val, noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
+                                             batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=50)
+
+        # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
+        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim, Xdim=args.Xdim, 
+                                            batch_size=args.test_batch,  model_type=args.model, loader_dataset = loader_test )
+
+        # Calculate the MSE of conditional quantiles at different levels.
+        quantile_result = MSE_quantile_G_uniY(G = trained_G, loader_dataset = loader_test , noise_dim=args.noise_dim, Xdim=args.Xdim,
+                                              test_size = args.test,  batch_size=args.test_batch, model_type=args.model)
+
+        test_G_mean_sd.append(mean_sd_result.detach().cpu().numpy())
+        test_G_quantile.append(quantile_result.detach().cpu().numpy())
+
+    print("L1 error, L2 error, MSE(mean), MSE(sd):", test_G_mean_sd)
+    print("MSE(quantile) at level {0.05, 0.25, 0.50, 0.75, 0.95}:", test_G_quantile)
+
+    #saving the results as csv
+    test_G_mean_sd_csv = pd.DataFrame(test_G_mean_sd)
+    test_G_quantile_csv = pd.DataFrame(test_G_quantile)
+
+    test_G_mean_sd_csv.to_csv("./test_G_mean_sd_"+str(args.model)+"_d"+str(args.Xdim)+".csv")
+    test_G_quantile_csv.to_csv("./M2d100/test_G_"+str(args.model)+"_d"+str(args.Xdim)+".csv")
+
+
+#run
+main()

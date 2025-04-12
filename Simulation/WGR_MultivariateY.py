@@ -105,7 +105,7 @@ def main():
                                              noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
                                              batch_size=args.train_batch, lambda_w=0.95,lambda_l=0.05, 
                                              multivariate=True, save_path='./', model_type=args.model, 
-                                             device='cpu', num_epochs=3, is_plot=True, plot_iter=500)
+                                             device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=500)
         
         # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
         mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim, 

@@ -66,9 +66,9 @@ def main():
 
     for k in range(args.reps):
         print('============================ REPLICATION ==============================')
-        print(k, seed[0])
+        print(k, seed[k])
 
-        setup_seed(seed[0].detach().numpy().item())
+        setup_seed(seed[k].detach().numpy().item())
         
         # Generate data from M2
         data_gen = DataGenerator(args)

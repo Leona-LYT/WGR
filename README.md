@@ -50,9 +50,29 @@ WGR/
 
 ## 📄 Reference
 ```bibtex
-@inproceedings{yourname2024robust,
-  title={Robust Conformal Prediction via Maximum Rank Correlation},
-  author={Your Name and Coauthor Name},
-  booktitle={NeurIPS},
-  year={2024}
+@article{liu2021wasserstein,
+  title={Wasserstein generative learning of conditional distribution},
+  author={Liu, Shiao and Zhou, Xingyu and Jiao, Yuling and Huang, Jian},
+  journal={arXiv preprint arXiv:2112.10039},
+  year={2021}
 }
+
+@article{romano2019conformalized,
+  title={Conformalized quantile regression},
+  author={Romano, Yaniv and Patterson, Evan and Candes, Emmanuel},
+  journal={Advances in neural information processing systems},
+  volume={32},
+  year={2019}
+}
+
+article{jospin2022hands,
+  title={Hands-on Bayesian neural networks—A tutorial for deep learning users},
+  author={Jospin, Laurent Valentin and Laga, Hamid and Boussaid, Farid and Buntine, Wray and Bennamoun, Mohammed},
+  journal={IEEE Computational Intelligence Magazine},
+  volume={17},
+  number={2},
+  pages={29--48},
+  year={2022},
+  publisher={IEEE}
+}
+

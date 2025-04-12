@@ -57,55 +57,79 @@ args = parser.parse_args()
 
 print(args)
 
-setup_seed(5678)
+# Set seed 
+setup_seed(1234)
+reps=(args.reps,)
+seed = torch.randint(0, 10000, reps)  
 
+def main():
+    test_G_mean_sd = []  # Initialize as list
+    test_G_quantile = []  # Initialize as list
 
-# Generate data from M3
-data_gen = DataGenerator(args)
-DATA = data_gen.generate_data(args.model)
+    for k in range(args.reps):
+        print('============================ REPLICATION ==============================')
+        print(k, seed[k])
 
-train_X, train_Y = DATA['train_X'], DATA['train_Y']
-val_X, val_Y = DATA['val_X'], DATA['val_Y']
-test_X, test_Y = DATA['test_X'], DATA['test_Y']
+        setup_seed(seed[k].detach().numpy().item())
 
+        # Generate data from M3
+        data_gen = DataGenerator(args)
+        DATA = data_gen.generate_data(args.model)
 
-# Create TensorDatasets and initialize a DataLoaders
-train_dataset = TensorDataset( train_X.float(), train_Y.float() )
-loader_train = DataLoader(train_dataset , batch_size=args.train_batch, shuffle=True)
+        train_X, train_Y = DATA['train_X'], DATA['train_Y']
+        val_X, val_Y = DATA['val_X'], DATA['val_Y']
+        test_X, test_Y = DATA['test_X'], DATA['test_Y']
 
-val_dataset = TensorDataset( val_X.float(), val_Y.float() )
-loader_val = DataLoader(val_dataset , batch_size=args.val_batch, shuffle=True)
+        # Create TensorDatasets and initialize a DataLoaders
+        train_dataset = TensorDataset( train_X.float(), train_Y.float() )
+        loader_train = DataLoader(train_dataset , batch_size=args.train_batch, shuffle=True)
 
-test_dataset = TensorDataset( test_X.float(), test_Y.float() )
-loader_test  = DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
+        val_dataset = TensorDataset( val_X.float(), val_Y.float() )
+        loader_val = DataLoader(val_dataset , batch_size=args.val_batch, shuffle=True)
 
-# Generate multiple response samples for visualization of the conditional distribution
-# - Takes the first training sample and uses it as the conditioning value
-plot_Y = generate_multi_responses_multiY(x_value = train_X[1].view([1]).item(), n_responses=500,model_type=args.model)
-# Create a 2D kernel density estimation plot to visualize the distribution of responses
-fig, ax = plot_kde_2d(plot_Y, title="2D Kernel Density Estimation")
-plt.show()
-plt.close()
+        test_dataset = TensorDataset( test_X.float(), test_Y.float() )
+        loader_test  = DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
 
-# Define generator network and discriminator network
-G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [512, 512, 512])
-D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [512, 512, 512])
+        global G_net, D_net, trained_G, trained_D
 
-D_solver = optim.RMSprop(D_net.parameters(),lr = 0.0002)
-G_solver = optim.RMSprop(G_net.parameters(),lr = 0.0002)
+        # Define generator network and discriminator network
+        G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [512, 512, 512])
+        D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [512, 512, 512])
 
-# Training
-trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, 
-                                     loader_train = loader_train, loader_val=loader_val,
-                                     noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, batch_size=args.train_batch,
-                                     lambda_w=0.95,lambda_l=0.05, multivariate=True, save_path='./', 
-                                     model_type=args.model, device='cpu', num_epochs=200)
+        D_solver = optim.RMSprop(D_net.parameters(),lr = 0.0002)
+        G_solver = optim.RMSprop(G_net.parameters(),lr = 0.0002)
 
-# Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
-test_G_mean_sd = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim, Xdim=args.Xdim,
-                                    batch_size=args.test_batch,  model_type=args.model, loader_dataset = loader_test,
-                                    Ydim=args.Ydim,is_multivariate=True )
+        # Training
+        trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, 
+                                             loader_train = loader_train, loader_val=loader_val,
+                                             noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
+                                             batch_size=args.train_batch, lambda_w=0.95,lambda_l=0.05, 
+                                             multivariate=True, save_path='./', model_type=args.model, 
+                                             device='cpu', num_epochs=3, is_plot=True, plot_iter=500)
+        
+        # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
+        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim, 
+                                            Xdim=args.Xdim, batch_size=args.test_batch, model_type=args.model, 
+                                            loader_dataset = loader_test, Ydim=args.Ydim,is_multivariate=True )
+        
+        # Calculate the MSE of conditional quantiles at different levels.
+        quantile_result = MSE_quantile_G_multiY(G = trained_G, loader_dataset = loader_test, Ydim=args.Ydim, 
+                                                Xdim=args.Xdim, noise_dim=args.noise_dim, batch_size=args.test_batch, 
+                                                test_size = args.test, model_type=args.model)
+        
+        test_G_mean_sd.append(np.array(mean_sd_result))
+        test_G_quantile.append(quantile_result.copy() if isinstance(quantile_result, np.ndarray) else np.array(list(quantile_result)))
+        
+    print("L1 error, L2 error, MSE(mean), MSE(sd):", test_G_mean_sd)
+    print("MSE(quantile) at level {0.05, 0.25, 0.50, 0.75, 0.95}:", test_G_quantile)
 
-# Calculate the MSE of conditional quantiles at different levels.
-test_G_quantile = MSE_quantile_G_multiY(G = trained_G, loader_dataset = loader_test, Ydim=args.Ydim, Xdim=args.Xdim, 
-                                        noise_dim=args.noise_dim,  batch_size=args.test_batch, test_size = args.test, model_type=args.model)
+    #saving the results as csv
+    test_G_mean_sd_csv = pd.DataFrame(np.array(test_G_mean_sd).reshape(args.reps,8))
+    test_G_quantile_csv = pd.DataFrame(np.array(test_G_quantile)reshape(args.reps,10))
+
+    test_G_mean_sd_csv.to_csv("./test_G_mean_sd_"+str(args.model)+"_d"+str(args.Xdim)+".csv")
+    test_G_quantile_csv.to_csv("./test_G_quantile_"+str(args.model)+"_d"+str(args.Xdim)+".csv")
+    
+#run
+main()
+

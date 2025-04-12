@@ -1,5 +1,5 @@
 # Wasserstein Generative Regression
-The repository contains the code for the paper "Wasserstein Generative Regression"
+The repository contains the code for the paper "Wasserstein Generative Regression".
 
 ## 📦 Python Module Versions
 Our current implementation depends on the following Python packages:
@@ -48,4 +48,11 @@ WGR/
 - **model:**  Contains the neural network architectures used in this paper.
 - **utils:**  Contains utility functions for running experiments.
 
-
+## 📄 Reference
+```bibtex
+@inproceedings{yourname2024robust,
+  title={Robust Conformal Prediction via Maximum Rank Correlation},
+  author={Your Name and Coauthor Name},
+  booktitle={NeurIPS},
+  year={2024}
+}

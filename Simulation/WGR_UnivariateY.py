@@ -72,7 +72,7 @@ def main():
         
         # Generate data from M2
         data_gen = DataGenerator(args)
-        DATA = data_gen.generate_data('M2')
+        DATA = data_gen.generate_data(args.model)
         
         train_X, train_Y = DATA['train_X'], DATA['train_Y']
         val_X, val_Y = DATA['val_X'], DATA['val_Y']

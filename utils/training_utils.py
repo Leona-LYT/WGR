@@ -2,7 +2,10 @@ import os
 import copy
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
+from utils.plot_utils import plot_kde_2d
 from utils.validation_utils import val_G
+from data.SimulationData import generate_multi_responses_multiY
 from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penalty, discriminator_loss, generator_loss
 
 
@@ -11,7 +14,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                   batch_size,  J_size=50, noise_distribution='gaussian', multivariate=False,
                   lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
                   num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
-                  lr_decay_step=5, lr_decay_gamma=0.1):
+                  lr_decay_step=5, lr_decay_gamma=0.1, is_plot=False, plot_iter=500):
     """
     Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
     
@@ -39,7 +42,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         lr_decay: Learning rate decay strategy ('step', 'plateau', 'cosine', or None)
         lr_decay_step: Step size for StepLR or patience for ReduceLROnPlateau
         lr_decay_gamma: Multiplicative factor for learning rate decay
-    
+        is_plot: Whether to conduct visualization (default: False)
+        plot_iter: to conduct the visualization per iteration (default: 500)
     Returns:
         tuple: Best validation scores and final models
     """
@@ -95,15 +99,15 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                               distribution=noise_distribution).to(device)
             
             # Prepare inputs
-            d_input = torch.cat([x, y.view(batch_size, Ydim)], dim=1)     
-            g_input = torch.cat([x, eta], dim=1)
+            d_input = torch.cat([x.view(batch_size, Xdim), y.view(batch_size, Ydim)], dim=1)     
+            g_input = torch.cat([x.view(batch_size, Xdim), eta], dim=1)
             
             # ==================== Train Discriminator ====================
             D_solver.zero_grad()
             logits_real = D(d_input)
             
             fake_y = G(g_input).detach()
-            fake_images = torch.cat([x, fake_y.view(batch_size, Ydim)], dim=1)
+            fake_images = torch.cat([x.view(batch_size, Xdim), fake_y.view(batch_size, Ydim)], dim=1)
                 
             logits_fake = D(fake_images)
             
@@ -118,20 +122,35 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             
             # First: Standard WGAN loss
             fake_y = G(g_input)
-            fake_images = torch.cat([x, fake_y.view(batch_size, Ydim)], dim=1)
+            fake_images = torch.cat([x.view(batch_size, Xdim), fake_y.view(batch_size, Ydim)], dim=1)
             logits_fake = D(fake_images)
             g_error_w = generator_loss(logits_fake)
 
             # Second: Generate multiple outputs and compute L2 loss against expected y
             if lambda_l>0:  #if lambda_l = 0, then it becomes the standard cWGAN
-                g_output = torch.zeros([J_size, batch_size], device=device)
+                # Initialize output tensor with dimensions that work for both cases
+                g_output = torch.zeros([J_size, batch_size, max(1, Ydim)], device=device)
                 for i in range(J_size):
                     eta = sample_noise(x.size(0), noise_dim, distribution=noise_distribution).to(device)
-                    g_input_i = torch.cat([x, eta], dim=1)
-                    g_output[i] = G(g_input_i).view(batch_size)
+                    g_input = torch.cat([x.view(batch_size, Xdim), eta], dim=1)
+                    output = G(g_input)
+                    g_output[i] = output.view(batch_size, -1)  # Reshape to [batch_size, Ydim] or [batch_size, 1]
+                    
+                # Reshape final result if Ydim=1 to match expected dimensions
+                if Ydim == 1:
+                    g_output = g_output.squeeze(-1)  # Remove the last dimension to get [J_size, batch_size]
+                    # For univariate output, compute mean squared error directly
+                    g_error_l = torch.mean((g_output.mean(dim=0) - y.view(batch_size))**2)
+                else:
+                    # For multivariate output, use MSE loss function
+                    g_error_l = torch.mean(torch.sum((g_output.mean(dim=0) - y)**2, dim=1))
+            else: 
+                g_error_l = 0 
 
-            # Calculate L2 loss between mean prediction and target
-            g_error_l = torch.mean((g_output.mean(dim=0) - y.view(batch_size))**2)
+            
+            
+            #y_reshaped = y.view(batch_size, -1)  # Reshape to [batch_size, Ydim] or [batch_size, 1]
+            #g_error_l = torch.mean((mean_pred - y_reshaped)**2)
 
             # Combined loss with wasserstein and L2 regularization
             g_error = lambda_w * g_error_w + lambda_l * g_error_l
@@ -142,7 +161,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             
             # Increment iteration counter
             iter_count += 1
-            
+
+
             # Validate and save best model
             if (iter_count >= start_eva) and (iter_count % eva_iter == 0):
                 l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim,  Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate )
@@ -152,15 +172,39 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                       f"L1: {l1_acc:.4f}, L2: {l2_acc:.4f}")
                 
                 # Save model if validation improves
-                if l2_acc < best_acc:
+                if (Ydim==1) and (l2_acc < best_acc):
                     best_acc = l2_acc
                     best_model_g = copy.deepcopy(G.state_dict())
                     best_model_d = copy.deepcopy(D.state_dict())
-                    
+
                     # Save models
                     torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_best.pth")
                     torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_best.pth")
                     print(f"Saved best model with L2: {best_acc:.4f}")
+
+                # for multivariate model, conduct the visulaization
+                if is_plot:
+                    if (Ydim>1) and (iter_count % plot_iter == 0): 
+                        generate_Y = torch.zeros([1000,2]) #generate 500 response 
+                        for i in range(1000):
+                            plot_eta = sample_noise(1, dim = noise_dim, distribution=noise_distribution).to(device)
+                            plot_input =  torch.cat([torch.tensor([[1]]), plot_eta], dim=1)
+                            generate_Y[i] = G(plot_input)
+                        fig, ax = plot_kde_2d(generate_Y.detach(),title=f"Epoch {epoch} Distribution")
+                        plt.show()
+                        plt.close()
+                        
+            
+        
+        # Also update best model for multivariate case
+        if l2_acc < best_acc:
+            best_acc = l2_acc
+            best_model_g = copy.deepcopy(G.state_dict())
+            best_model_d = copy.deepcopy(D.state_dict())
+            print(f"New best multivariate model with L2: {best_acc:.4f}")
+
+                        
+                         
         
         # Apply learning rate decay at the end of each epoch
         epoch_d_loss = np.mean(d_losses)
@@ -188,6 +232,15 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             g_lr = G_solver.param_groups[0]['lr']
             print(f"Epoch {epoch} - D LR: {d_lr:.6f}, G LR: {g_lr:.6f}")
     
+    # For multivariate response model, save models at the end of the training
+    if Ydim>1 :
+        best_model_g = copy.deepcopy(G.state_dict())
+        best_model_d = copy.deepcopy(D.state_dict())
+        
+        torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_best.pth")
+        torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_best.pth")
+        print(f"Saved best model with L2: {best_acc:.4f}")
+
     # Load the best model at the end of training
     G.load_state_dict(best_model_g)
     D.load_state_dict(best_model_d)

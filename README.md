@@ -39,7 +39,7 @@ WGR/
 │     ├── plot_utils.py
 │     ├── training_utils.py
 │     ├── validation_utils.py
-├── Simulation/
+├── simulation/
 │     ├── WGR_UnivariateY.py
 │     ├── examples/
 │         ├── WGR_M1.ipynb
@@ -57,7 +57,7 @@ WGR/
 - **Simulation:** Contains code and examples for the simulation studies.  
   1. The simulation experiments can be conducted using the scripts `WGR_Univariate.py` and `WGR_Multivariate.py`.  
   2. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).
-  3. The dimensionality of the noise vector $\eta$ can be selected by using the script `select_m.py`
+  3. The dimensionality of the noise vector \( \eta \) can be selected by using the function `selection_m` provided in the script `basic_utils.py` located in the `utils` folder. An example demonstrating the selection procedure is given in `select_m.py` in the `simulation` folder.  
   4.   **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
 
      

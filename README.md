@@ -14,6 +14,7 @@ argparse==1.1
 matplotlib==3.9.3
 PIL==10.4.0
 seaborn==0.13.2
+sklearn==1.5.2
 ```
 
 ## 📁 Project Structure 

@@ -45,6 +45,7 @@ WGR/
 │         ├── WGR_M1.ipynb
 │         ├── ...
 │         └── WGR_M4.ipynb
+├── Compared methods/
 ``` 
 - **data:** Datasets used in this paper.
   1. **simulation data**: All simulation data can be generated using the script `SimulationData.py`.  
@@ -53,10 +54,12 @@ WGR/
      - **image datasets**: Can be downloaded using the script `image_data.py`.
 - **model:**  Contains the neural network architectures used in this paper.
 - **utils:**  Contains utility functions for running experiments.
-- **Simulation:** Contains code and examples of simulation studies:
-  1. The simulation studies can be condcuted by using the scripts `WGR_Univarate.py` and `WGR_multivarate.py`.
-  2. **examples**: Four jupyter notebooks show how to run the proposed WGR method for four simulation models considered in the paper (only one replication is shown here) 
-  
+- **Simulation:** Contains code and examples for the simulation studies.  
+  1. The simulation experiments can be conducted using the scripts `WGR_Univariate.py` and `WGR_Multivariate.py`.  
+  2. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).
+  3.   **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
+
+     
 ## 📚 References
 Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.
 

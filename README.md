@@ -54,11 +54,14 @@ WGR/
      - **image datasets**: Can be downloaded using the script `image_data.py`.
 - **model:**  Contains the neural network architectures used in this paper.
 - **utils:**  Contains utility functions for running experiments.
+  1. The 'cqr_utils.py' is used for computing the prediction interval and the corresponding coverage probability, based on Romano et al. (2019), in the deep nonparametric least squares (DNLS) method.
 - **Simulation:** Contains code and examples for the simulation studies.  
   1. The simulation experiments can be conducted using the scripts `WGR_Univariate.py` and `WGR_Multivariate.py`.  
   2. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).
-  3. The dimensionality of the noise vector \( \eta \) can be selected by using the function `selection_m` provided in the script `basic_utils.py` located in the `utils` folder. An example demonstrating the selection procedure is given in `select_m.py` in the `Simulation` folder.  
-  4.   **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
+  3. The dimensionality of the noise vector \( \eta \) can be selected by using the function `selection_m` provided in the script `basic_utils.py` located in the `utils` folder. An example demonstrating the selection procedure is given in `select_m.py` in the `Simulation` folder.
+  4. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
+  5.  **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
+
 
      
 ## 📚 References

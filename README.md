@@ -40,8 +40,12 @@ WGR/
 │     ├── training_utils.py
 │     ├── validation_utils.py
 ``` 
-- **data:** Original dataset used in training.
-- **model:** Pretrained ResNet50 architecture.
-- **output:** Prediction results are saved in `results/`.
+- **data:** Datasets used in this paper.
+  1. **Simulation data**: All simulation data can be generated using the script `SimulationData.py`.  
+  2. **Real data**:
+     - **Tabular datasets**: This includes the **CT slices dataset** and **UJIndoorLoc dataset**, both of which are included in the repository. Detailed information about these datasets can be found at the UCI Machine Learning Repository.  
+     - **Tabular datasets**: Can be downloaded using the script `image_data.py`.
+- **model:**  Contains the neural network architectures used in this paper.
+- **utils:**  Contains utility functions for running experiments.
 
 

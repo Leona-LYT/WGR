@@ -39,6 +39,12 @@ WGR/
 │     ├── plot_utils.py
 │     ├── training_utils.py
 │     ├── validation_utils.py
+├── Simulation/
+│     ├── WGR_UnivariateY.py
+│     ├── examples/
+│         ├── WGR_M1.ipynb
+│         ├── ...
+│         └── WGR_M4.ipynb
 ``` 
 - **data:** Datasets used in this paper.
   1. **simulation data**: All simulation data can be generated using the script `SimulationData.py`.  
@@ -47,7 +53,10 @@ WGR/
      - **image datasets**: Can be downloaded using the script `image_data.py`.
 - **model:**  Contains the neural network architectures used in this paper.
 - **utils:**  Contains utility functions for running experiments.
-
+- **Simulation:** Contains code and examples of simulation studies:
+  1. The simulation studies can be condcuted by using the scripts `WGR_Univarate.py` and `WGR_multivarate.py`.
+  2. **examples**: Four jupyter notebooks show how to run the proposed WGR method for four simulation models considered in the paper (only one replication is shown here) 
+  
 ## 📚 References
 Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.
 

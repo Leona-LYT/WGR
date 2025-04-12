@@ -48,31 +48,9 @@ WGR/
 - **model:**  Contains the neural network architectures used in this paper.
 - **utils:**  Contains utility functions for running experiments.
 
-## 📄 Reference
-```bibtex
-@article{liu2021wasserstein,
-  title={Wasserstein generative learning of conditional distribution},
-  author={Liu, Shiao and Zhou, Xingyu and Jiao, Yuling and Huang, Jian},
-  journal={arXiv preprint arXiv:2112.10039},
-  year={2021}
-}
+## 📚 References
+Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.
+Liu, S., Zhou, X., Jiao, Y., & Huang, J. (2021). Wasserstein generative learning of conditional distribution. arXiv preprint arXiv:2112.10039.
+Romano, Y., Patterson, E., & Candes, E. (2019). Conformalized quantile regression. Advances in neural information processing systems, 32.
 
-@article{romano2019conformalized,
-  title={Conformalized quantile regression},
-  author={Romano, Yaniv and Patterson, Evan and Candes, Emmanuel},
-  journal={Advances in neural information processing systems},
-  volume={32},
-  year={2019}
-}
-
-article{jospin2022hands,
-  title={Hands-on Bayesian neural networks—A tutorial for deep learning users},
-  author={Jospin, Laurent Valentin and Laga, Hamid and Boussaid, Farid and Buntine, Wray and Bennamoun, Mohammed},
-  journal={IEEE Computational Intelligence Magazine},
-  volume={17},
-  number={2},
-  pages={29--48},
-  year={2022},
-  publisher={IEEE}
-}
 

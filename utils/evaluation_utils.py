@@ -2,7 +2,9 @@ import torch
 from scipy.stats import norm
 from scipy.stats import lognorm
 import math
+import torch.nn.functional as F
 from utils.basic_utils import sample_noise
+from data.SimulationData import DataGenerator, generate_multi_responses_multiY
 
 # =============================================================================
 # L1 and L2 error, MSE of conditional mean and conditional standard deviation
@@ -31,8 +33,8 @@ def L1L2_MSE_mean_sd_G(G, loader_dataset, noise_dim, Xdim, test_size, batch_size
         num_batches = test_size // batch_size
         
         # Initialize metrics tensors with appropriate dimensions
-        val_L1 = torch.zeros(num_batches, Ydim)
-        val_L2 = torch.zeros(num_batches, Ydim)
+        eva_L1 = torch.zeros(num_batches, Ydim)
+        eva_L2 = torch.zeros(num_batches, Ydim)
         mse_mean = torch.zeros(num_batches, Ydim)
         mse_sd = torch.zeros(num_batches, Ydim)
         
@@ -53,7 +55,7 @@ def L1L2_MSE_mean_sd_G(G, loader_dataset, noise_dim, Xdim, test_size, batch_size
                 
             # Calculate sample statistics
             if is_multivariate:
-                output_mean = output.mean(dim=0)
+                output_mean = torch.mean(output,dim=0)
                 output_sd = ((output - output_mean)**2).mean(dim=0).sqrt()
             else:
                 output_mean = outputs.mean(dim=0)
@@ -68,12 +70,6 @@ def L1L2_MSE_mean_sd_G(G, loader_dataset, noise_dim, Xdim, test_size, batch_size
                 x_si = x @ beta
                 y_test = x_si**2 + torch.sin(x_si.abs()) + 2*torch.exp(torch.tensor(-0.5))
                 y_sd = torch.sqrt( 2-4*torch.exp(torch.tensor(-1)) +2* torch.exp(torch.tensor(-2))  )
-            elif model_type == "M3":
-                y_test = x if is_multivariate else None
-                y_sd = torch.sqrt(torch.tensor(8/3))
-            elif model_type == "M4":
-                y_test = 2*x if is_multivariate else None
-                y_sd = torch.sqrt(torch.tensor((math.pi**2/3 + 0.4**2)))
             elif model_type == "SM1":
                 y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
                 y_sd = torch.ones_like(y_test)
@@ -84,39 +80,42 @@ def L1L2_MSE_mean_sd_G(G, loader_dataset, noise_dim, Xdim, test_size, batch_size
                 A = 5 + x[:,0]**2/3 + x[:,1]**2 + x[:,2]**2 + x[:,3] + x[:,4]
                 y_test = A * np.exp(0.0625)
                 y_sd = torch.sqrt(A**2 * (np.exp(0.25) - np.exp(0.125)))
-            elif model_type == "SM4":
-                y_test = x if is_multivariate else None
-                y_sd = torch.sqrt(torch.tensor(5 + 0.5*0.16**2))
-            else:
-                raise ValueError(f"Unknown model type: {model_type}")
+
+            if is_multivariate:
+                Y_generate = torch.zeros([500,x.size(0),Ydim])
+                for j in range(x.size(0)):
+                    Y_generate[:,j,:] = generate_multi_responses_multiY(x_value = x[j].view([1]).item(), n_responses=500,model_type=model_type)
+                    y_test = torch.mean(Y_generate,dim=0) 
+                    y_sd = torch.std(Y_generate,dim=0)  
+
             
             # Calculate metrics based on whether it's multivariate or not
             if is_multivariate:
-                val_L1[batch_idx] = torch.mean(torch.abs(output_mean - y), dim=0)
-                val_L2[batch_idx] = torch.mean((output_mean - y)**2, dim=0)
+                eva_L1[batch_idx] = torch.mean(torch.abs(output_mean - y), dim=0)
+                eva_L2[batch_idx] = torch.mean((output_mean - y)**2, dim=0)
                 mse_mean[batch_idx] = torch.mean((output_mean - y_test)**2, dim=0)
                 mse_sd[batch_idx] = torch.mean((output_sd - y_sd)**2, dim=0)
             else:
-                val_L1[batch_idx] = torch.mean(torch.abs(output_mean - y))
-                val_L2[batch_idx] = torch.mean((output_mean - y)**2)
+                eva_L1[batch_idx] = torch.mean(torch.abs(output_mean - y))
+                eva_L2[batch_idx] = torch.mean((output_mean - y)**2)
                 mse_mean[batch_idx] = torch.mean((output_mean - y_test)**2)
                 mse_sd[batch_idx] = torch.mean((output_sd - y_sd)**2)
         
         # Calculate mean metrics across batches
-        mean_val_L1 = torch.mean(val_L1, dim=0)
-        mean_val_L2 = torch.mean(val_L2, dim=0)
+        mean_eva_L1 = torch.mean(eva_L1, dim=0)
+        mean_eva_L2 = torch.mean(eva_L2, dim=0)
         mean_mse_mean = torch.mean(mse_mean, dim=0)
         mean_mse_sd = torch.mean(mse_sd, dim=0)
         
         # Print results
         print(f"Model: {model_type}, {'Multivariate' if is_multivariate else 'Univariate'}, Ydim: {Ydim}, J_t_size: {J_t_size}")
-        print(f"L1 Loss: {mean_val_L1}")
-        print(f"L2 Loss: {mean_val_L2}")
+        print(f"L1 Loss: {mean_eva_L1}")
+        print(f"L2 Loss: {mean_eva_L2}")
         print(f"MSE Mean: {mean_mse_mean}")
         print(f"MSE SD: {mean_mse_sd}")
         
         # Return means across all dimensions
-        return torch.mean(val_L1).detach().numpy(), torch.mean(val_L2).detach().numpy(), mse_mean.detach().mean().numpy(), mse_sd.detach().mean().numpy()
+        return mean_eva_L1.detach().numpy(), mean_eva_L2.detach().numpy(), mean_mse_mean.detach().numpy(), mean_mse_sd.detach().numpy()
         
 # =============================================================================
 # MSE of conditional quantile
@@ -194,20 +193,22 @@ def MSE_quantile_G_uniY(G, loader_dataset,  noise_dim, Xdim, test_size, batch_si
         
         return tuple(results)
 
-import torch
 
-def MSE_quantile_G_multiY(G, loader_dataset,  J_t_size, batch_size, model_type, Ydim=2):
+
+def MSE_quantile_G_multiY(G, loader_dataset,  Ydim, Xdim, noise_dim, batch_size, test_size, model_type, J_t_size=500):
     """
     Calculate quantile metrics for multivariate generator outputs.
     
     Parameters:
         G (nn.Module): Generator model
         loader_dataset (DataLoader): Data loader for test data
-        J_t_size (int): Number of samples to generate for each input
-        batch_size (int): Batch size
-        model_type (str): Type of model for generating responses
         Ydim (int): Dimension of the output Y (default: 2)
-       
+        noise_dim: Dimension of noise vector
+        test_size: The sample size of test dataset
+        batch_size (int): Batch size
+        J_t_size (int): Number of samples to generate for each input
+        model_type (str): Type of model for generating responses
+        
     
     Returns:
         torch.Tensor: Stacked quantile metrics of shape [num_quantiles, Ydim]
@@ -262,7 +263,7 @@ def MSE_quantile_G_multiY(G, loader_dataset,  J_t_size, batch_size, model_type, 
 # =============================================================================
 # evaluation on real data analysis
 # =============================================================================
-def eva_real_G(G, loader_data, Ydim, J_t_size=50):
+def eva_real_G(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
     """
     Evaluate a generator model on real data analysis.
     
@@ -270,6 +271,8 @@ def eva_real_G(G, loader_data, Ydim, J_t_size=50):
         G (nn.Module): Generator model
         loader_data (DataLoader): Data loader for evaluation
         Ydim (int): Dimension of output Y
+        noise_dim (int): Dimension of noise vector eta
+        batch_size (int): the batch size of dataset loaded
         J_t_size (int): Number of samples to generate for each input
     
     Returns:
@@ -280,10 +283,10 @@ def eva_real_G(G, loader_data, Ydim, J_t_size=50):
     quantiles = [0.025, 0.975]  # Lower and upper bounds for 95% prediction interval
     
     with torch.no_grad():
-        val_L1 = torch.zeros([num_batches, Ydim])
-        val_L2 = torch.zeros([num_batches, Ydim])
-        Q_025 = torch.zeros([num_batches, Ydim])
-        Q_975 = torch.zeros([num_batches, Ydim])
+        eva_L1 = torch.zeros([num_batches, Ydim])
+        eva_L2 = torch.zeros([num_batches, Ydim])
+        Q_025 = torch.zeros([num_batches, batch_size])
+        Q_975 = torch.zeros([num_batches, batch_size])
         CP = torch.zeros([num_batches, Ydim])
         LPI = torch.zeros([num_batches, Ydim])
         SD_UBE = torch.zeros([num_batches, Ydim])
@@ -301,46 +304,46 @@ def eva_real_G(G, loader_data, Ydim, J_t_size=50):
             output = torch.stack(outputs)
             
             # Calculate metrics
-            val_L1[batch_idx] = torch.mean(torch.abs(output.mean(dim=0) - y), dim=0)
-            val_L2[batch_idx] = torch.mean((output.mean(dim=0) - y) ** 2, dim=0)
+            eva_L1[batch_idx] = torch.mean(torch.abs(output.mean(dim=0) - y))
+            eva_L2[batch_idx] = torch.mean((output.mean(dim=0) - y) ** 2)
             
             # Calculate quantiles
             lower_bound = output.quantile(quantiles[0], dim=0)  # [batch_size, Ydim]
             upper_bound = output.quantile(quantiles[1], dim=0)  # [batch_size, Ydim]
             
             # Store quantiles
-            Q_025[batch_idx] = lower_bound
-            Q_975[batch_idx] = upper_bound
+            Q_025[batch_idx] = lower_bound.squeeze(1)
+            Q_975[batch_idx] = upper_bound.squeeze(1)
             
             # Calculate length of prediction interval
             LPI[batch_idx] = torch.mean(upper_bound - lower_bound, dim=0)
             
             # Calculate standard deviation of upper and lower bound errors
-            SD_UBE[batch_idx] = torch.std(F.mse_loss(upper_bound, y, reduction='none'), dim=0)
-            SD_LBE[batch_idx] = torch.std(F.mse_loss(lower_bound, y, reduction='none'), dim=0)
+            SD_UBE[batch_idx] = torch.std(F.mse_loss(upper_bound.squeeze(1), y, reduction='none'), dim=0)
+            SD_LBE[batch_idx] = torch.std(F.mse_loss(lower_bound.squeeze(1), y, reduction='none'), dim=0)
             
             # Calculate coverage probability (whether y is within prediction interval)
-            in_interval = (y >= lower_bound) & (y <= upper_bound)
-            CP[batch_idx] = in_interval.float().mean(dim=0)
+            in_interval = (y >= lower_bound.squeeze(1)) & (y <= upper_bound.squeeze(1))
+            CP[batch_idx] = in_interval.float().mean(dim=0).view([1])
         
         # Calculate average metrics across batches
-        mean_val_L1 = val_L1.mean(dim=0)
-        mean_val_L2 = val_L2.mean(dim=0)
+        mean_eva_L1 = eva_L1.mean(dim=0)
+        mean_eva_L2 = eva_L2.mean(dim=0)
         mean_CP = CP.mean(dim=0)
         mean_LPI = LPI.mean(dim=0)
         mean_SD_UBE = SD_UBE.mean(dim=0)
         mean_SD_LBE = SD_LBE.mean(dim=0)
         
         # Print results
-        print(f"L1 Loss: {mean_val_L1}")
-        print(f"L2 Loss: {mean_val_L2}")
+        print(f"L1 Loss: {mean_eva_L1}")
+        print(f"L2 Loss: {mean_eva_L2}")
         print(f"Coverage Probability: {mean_CP.detach().numpy()}")
         print(f"Length of Prediction Interval: {mean_LPI.detach().numpy()}")
         print(f"SD of Upper Bound Error: {mean_SD_UBE.detach().numpy()}")
         print(f"SD of Lower Bound Error: {mean_SD_LBE.detach().numpy()}")
         
-        return (mean_val_L1.detach().numpy(),
-                mean_val_L2.detach().numpy(),
+        return (mean_eva_L1.detach().numpy(),
+                mean_eva_L2.detach().numpy(),
                 mean_CP.detach().numpy(),
                 mean_LPI.detach().numpy(),
                 mean_SD_UBE.detach().numpy(),

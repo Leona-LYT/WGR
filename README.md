@@ -61,7 +61,7 @@ WGR/
   3. `BNN.py`: contains the networks used in the Bayesian Neural Network methods (Jospin et al., 2022).
 - **utils:**  Contains utility functions for running experiments.
   1. `basic_utils.py': Basic utility functions.
-  2. `training_utils.py': Training routines for each method implemented in the paper.  
+  2. `training_utils.py': Training routines for each method implemented in the paper. For real data analysis, the `model_type` parameter may be specified as either the dataset name or the keyword `real_data`.
   3. `evaluation_utilis.py': Evaluation procedures for assessing method performance in both simulation studies and real data analyses.  
   4. `validation_utilis.py': Validation routines for model selection and performance tracking.  
   5. `plot_utils.py': Visualization utilities for generating figures used in the paper.

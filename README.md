@@ -56,13 +56,16 @@ WGR/
      - **tabular datasets**: This includes the **CT slices dataset** and **UJIndoorLoc dataset**, both of which are included in the repository. Detailed information about these datasets can be found at the UCI Machine Learning Repository.  
      - **image datasets**: Can be downloaded using the script `image_data.py`.
 - **model:**  Contains the neural network architectures used in this paper.
+  1. `generator.py` and `discriminator.py` contain the generator and discriminator networks used in this paper.
+  2. `regression_net.py` contains the networks used in the Deep Nonparametric Least Squares (DNLS) method.
+  3. `BNN.py`: contains the networks used in the Bayesian Neural Network methods (Jospin et al., 2022).
 - **utils:**  Contains utility functions for running experiments.
   1. `basic_utils.py': Basic utility functions.
   2. `training_utils.py': Training routines for each method implemented in the paper.  
   3. `evaluation_utilis.py': Evaluation procedures for assessing method performance in both simulation studies and real data analyses.  
   4. `validation_utilis.py': Validation routines for model selection and performance tracking.  
   5. `plot_utils.py': Visualization utilities for generating figures used in the paper.
-  6. 'cqr_utils.py': Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the Deep Nonparametric Least Squares (DNLS) framework.
+  6. 'cqr_utils.py': Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the DNLS framework.
 - **Simulation:** Contains code and examples for the simulation studies.  
   1. The simulation experiments can be conducted using the scripts `WGR_Univariate.py` and `WGR_Multivariate.py`.  
   2. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).

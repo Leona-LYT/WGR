@@ -2,6 +2,7 @@ import torch
 from scipy.stats import norm
 from scipy.stats import lognorm
 import math
+import torch.nn as nn
 import torch.nn.functional as F
 from utils.basic_utils import sample_noise
 from data.SimulationData import DataGenerator, generate_multi_responses_multiY
@@ -263,6 +264,53 @@ def MSE_quantile_G_multiY(G, loader_dataset,  Ydim, Xdim, noise_dim, batch_size,
 # =============================================================================
 # evaluation on real data analysis
 # =============================================================================
+# some preparations
+l1_loss = nn.L1Loss()  # loss(input,target)
+l2_loss = nn.MSELoss()
+
+def eva_CT_G(G, loader_data, noise_dim, batch_size, J_t_size=50):
+    """
+    Evaluate a generator model on real data analysis.
+    
+    Parameters:
+        G (nn.Module): Generator model
+        loader_data (DataLoader): Data loader for evaluation
+        noise_dim (int): Dimension of noise vector eta
+        batch_size (int): the batch size of dataset loaded
+        J_t_size (int): Number of samples to generate for each input
+    
+    Returns:
+        tuple: Mean L1 loss, mean L2 loss, coverage probability, length of prediction interval, 
+               standard deviation of upper bound error, standard deviation of lower bound error std
+    """
+    num_batches = len(loader_data)
+    quantiles = [0.025, 0.975]  # Lower and upper bounds for 95% prediction interval
+
+    with torch.no_grad():
+        test_L1 = torch.zeros(num_batches)
+        test_L2 = torch.zeros(num_batches)
+        CP_test = torch.zeros(num_batches)
+        PI_test = torch.zeros(num_batches)
+        std_LB = torch.zeros(num_batches)
+        std_UB = torch.zeros(num_batches)
+        
+        for batch_idx, (x,y) in enumerate(loader_data):
+            output = torch.zeros([J_t_size,batch_size])
+            for i in range(J_t_size):
+                eta = sample_noise(x.size(0), noise_dim)
+                g_input = torch.cat([x,eta],dim=1).float()
+                output[i] = G(g_input).view(x.size(0)).detach()
+            
+            test_L1[batch_idx] = l1_loss( output.mean(dim=0), y )
+            test_L2[batch_idx] = l2_loss( output.mean(dim=0), y )
+            CP_test[batch_idx] = ( (y >= output.quantile(quantiles[0],axis=0) ) & (y <= output.quantile(quantiles[1],axis=0) ) ).sum()/x.size(0)
+            PI_test[batch_idx] = torch.mean(torch.abs(output.quantile(quantiles[1],axis=0)  - output.quantile(quantiles[0],axis=0) ))
+            std_LB[batch_idx] = torch.std(y-output.quantile(quantiles[0],axis=0))
+            std_UB[batch_idx] = torch.std(output.quantile(quantiles[1],axis=0)-y)
+        
+        print(test_L1.mean(), test_L2.mean(),CP_test.mean(), PI_test.mean(), std_LB.mean(), std_UB.mean() )   
+        return test_L1.mean().detach().numpy(), test_L2.mean().detach().numpy(),CP_test.mean(), PI_test.mean(), std_LB.detach().mean().numpy(), std_UB.detach().mean().numpy()
+
 def eva_real_G(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
     """
     Evaluate a generator model on real data analysis.

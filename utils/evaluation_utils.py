@@ -268,7 +268,7 @@ def MSE_quantile_G_multiY(G, loader_dataset,  Ydim, Xdim, noise_dim, batch_size,
 l1_loss = nn.L1Loss()  # loss(input,target)
 l2_loss = nn.MSELoss()
 
-def eva_CT_G(G, loader_data, noise_dim, batch_size, J_t_size=50):
+def eva_G_UniY(G, loader_data, noise_dim, batch_size, J_t_size=50):
     """
     Evaluate a generator model on real data analysis.
     

@@ -46,8 +46,10 @@ WGR/
 │         ├── WGR_M1.ipynb
 │         ├── ...
 │         └── WGR_M4.ipynb
-├── Compared methods/
-``` 
+├── real_data/
+```
+
+## File Descriptions
 - **data:** Datasets used in this paper.
   1. **simulation data**: All simulation data can be generated using the script `SimulationData.py`.  
   2. **real data**:
@@ -55,7 +57,12 @@ WGR/
      - **image datasets**: Can be downloaded using the script `image_data.py`.
 - **model:**  Contains the neural network architectures used in this paper.
 - **utils:**  Contains utility functions for running experiments.
-  1. The 'cqr_utils.py' is used for computing the prediction interval and the corresponding coverage probability, based on Romano et al. (2019), in the deep nonparametric least squares (DNLS) method.
+  1. `basic_utils.py': Basic utility functions.
+  2. `training_utils.py': Training routines for each method implemented in the paper.  
+  3. `evaluation_utilis.py': Evaluation procedures for assessing method performance in both simulation studies and real data analyses.  
+  4. `validation_utilis.py': Validation routines for model selection and performance tracking.  
+  5. `plot_utils.py': Visualization utilities for generating figures used in the paper.
+  6. 'cqr_utils.py': Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the Deep Nonparametric Least Squares (DNLS) framework.
 - **Simulation:** Contains code and examples for the simulation studies.  
   1. The simulation experiments can be conducted using the scripts `WGR_Univariate.py` and `WGR_Multivariate.py`.  
   2. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).

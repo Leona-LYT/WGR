@@ -22,7 +22,7 @@ from utils.basic_utils import setup_seed, get_dimension
 from models.generator import generator_fnn
 from models.discriminator import discriminator_fnn
 from utils.training_utils import train_WGR_fnn
-from utils.evaluation_utils import eva_CT_G
+from utils.evaluation_utils import eva_G_UniY
 
 import argparse
 
@@ -99,4 +99,4 @@ trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solv
                                      lambda_w=0.9, lambda_l=0.1, batch_size=args.train_batch, save_path='./', \
                                      model_type='CT', device='cpu', num_epochs=200)
 
-CT_numerical_results = eva_real_G(G=trained_G, loader_data=loader_test, Ydim=args.Ydim, noise_dim=args.noise_dim, batch_size=args.test_batch, J_t_size=50)
+CT_numerical_results = eva_G_UniY(G=trained_G, loader_data=loader_test, Ydim=args.Ydim, noise_dim=args.noise_dim, batch_size=args.test_batch, J_t_size=50)

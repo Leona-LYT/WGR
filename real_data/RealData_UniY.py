@@ -1,3 +1,6 @@
+"""
+This is the code for real data analysis with one dimensional response
+"""
 import sys
 import os
 current_dir = os.getcwd()  #use to import the defined functions
@@ -53,8 +56,8 @@ args = parser.parse_args()
 print(args)
 
 # import data
-all_CT = pd.read_csv("../data/CT.csv")
-all_CT = all_CT.iloc[:, 1:] 
+all_CT = pd.read_csv("../data/CT.csv") # you can change it to other dataset
+all_CT = all_CT.iloc[:, 1:]  # if the first column need to be omitted
 
 
 #split data into training dataset, testing dataset and validation dataset

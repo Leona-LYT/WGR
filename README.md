@@ -1,6 +1,7 @@
 # Wasserstein Generative Regression
 The repository contains the code for the paper "Wasserstein Generative Regression".
 
+
 ## 📦 Python Module Versions
 Our current implementation depends on the following Python packages:
 
@@ -16,6 +17,7 @@ PIL==10.4.0
 seaborn==0.13.2
 sklearn==1.5.2
 ```
+ 
 
 ## 📁 Project Structure 
 The structure of this repository is as follows:
@@ -49,7 +51,7 @@ WGR/
 ├── real_data/
 ```
 
-## File Descriptions
+## Components Descriptions
 - **data:** Datasets used in this paper.
   1. **simulation data**: All simulation data can be generated using the script `SimulationData.py`.  
   2. **real data**:
@@ -73,8 +75,11 @@ WGR/
   4. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
   5.  **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
 - **Real data:** The experiments for the real data analysis can be conducted by the codes provided in this fold.
- 
 
+### Workflow and Preparations
+1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  
+2. Clone the repository and install the required Python modules.  
+3. Run the experiments using the code provided in the `simulation/` and `real_data/` folders.
      
 ## 📚 References
 Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.

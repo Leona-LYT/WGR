@@ -120,4 +120,4 @@ trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solv
                                      lambda_w=0.95, lambda_l=0.05, batch_size=args.train_batch, save_path='./',
                                      model_type='UJI', device='cpu', num_epochs=50, multivariate=True)
 
-numerical_results = eva_G_MultiY(G=trained_G, loader_data=loader_test, Ydim=args.Ydim, noise_dim=args.noise_dim, batch_size=args.test_batch, J_t_size=500)
+numerical_results = eva_G_MultiY(G=trained_G, loader_data=loader_test, Ydim=args.Ydim, noise_dim=args.noise_dim, test_size=args.test, batch_size=args.test_batch, J_t_size=500)

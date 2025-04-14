@@ -77,7 +77,7 @@ WGR/
   3. The dimensionality of the noise vector \( \eta \) can be selected by using the function `selection_m` provided in the script `basic_utils.py` located in the `utils` folder. An example demonstrating the selection procedure is given in `select_m.py` in the `Simulation` folder.
   4. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
   5.  **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
-- **Real data:** The experiments for the real data analysis can be conducted by the codes provided in this fold.
+- **real_data:** The experiments for the real data analysis can be conducted by the codes provided in this fold.
   1. `RealData_UniY.py`: Provide the code for real data with one dimensional response Y.
   2. `RealData_MultiY.py`: Provide the code for real data with multi-dimensional response Y.
   3. `RealData_Image.py`: Provide the code for the reconstruction task of image data.

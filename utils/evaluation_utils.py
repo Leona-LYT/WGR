@@ -377,3 +377,4 @@ def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
         
         
         return mean_eva_L1, mean_eva_L2, mean_CP, mean_LPI, mean_SD_UBE, mean_SD_LBE
+

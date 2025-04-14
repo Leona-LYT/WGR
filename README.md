@@ -75,9 +75,9 @@ WGR/
   4. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
   5.  **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
 - **Real data:** The experiments for the real data analysis can be conducted by the codes provided in this fold.
-  1. `RealData_UniY.py`:
-  2. `RealData_MultiY.py`:
-  3. `RealData_Image.py`:
+  1. `RealData_UniY.py`: Provide the code for real data with one dimensional response Y.
+  2. `RealData_MultiY.py`: Provide the code for real data with multi-dimensional response Y.
+  3. `RealData_Image.py`: Provide the code for the reconstruction task of image data.
 
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  

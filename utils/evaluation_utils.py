@@ -342,7 +342,7 @@ def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
         
         for batch_idx, (x,y) in enumerate(loader_data):
             output = torch.zeros([J_t_size, x.size(0), Ydim])
-            for i in range(500):
+            for i in range(J_t_size):
                 eta = sample_noise(x.size(0), noise_dim)
                 g_input = torch.cat([x,eta],dim=1)
                 output[i] = G(g_input.float()).detach()

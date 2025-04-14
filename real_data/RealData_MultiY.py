@@ -61,7 +61,10 @@ all_UJI = all_UJI.iloc[:, :-3]
 X_data = all_UJI.iloc[:, :-6].values  # Here, we use 6, because the dimensionality of this dataset is 6.
 y_data = all_UJI.iloc[:, -6:].values
 
-# Create and apply scalers for each response variable
+# Create and fit scalers
+X_scaler = StandardScaler()
+X_all_scaled = X_scaler.fit_transform(X_data)
+
 y_scalers = [StandardScaler() for _ in range(6)]
 y_scaled = np.zeros_like(y_data)
 
@@ -70,7 +73,7 @@ for i in range(6):
     y_scaled[:, i] = y_scalers[i].fit_transform(y_data[:, i].reshape(-1, 1)).flatten()
 
 # Combine scaled responses with features for splitting
-all_data_scaled = np.hstack((X_data, y_scaled))
+all_data_scaled = np.hstack((X_all_scaled, y_scaled))
 
 # Convert back to DataFrame for easier handling
 all_UJI_scaled = pd.DataFrame(all_data_scaled)

@@ -114,7 +114,7 @@ G_solver = optim.Adam(G_net.parameters(), lr=0.001, betas=(0.9, 0.999))
 # Train the model using the train_model function
 trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
                                      loader_val=loader_val, noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
-                                     lambda_w=0.95, lambda_l=0.05, batch_size=args.train_batch, save_path='./', \
+                                     lambda_w=0.95, lambda_l=0.05, batch_size=args.train_batch, save_path='./',
                                      model_type='CT', device='cpu', num_epochs=50, multivariate=True)
 
 numerical_results = eva_G_MultiY(G=trained_G, loader_data=loader_test, Ydim=args.Ydim, noise_dim=args.noise_dim, batch_size=args.test_batch, J_t_size=500)

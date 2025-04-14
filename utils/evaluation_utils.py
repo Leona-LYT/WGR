@@ -268,7 +268,7 @@ def MSE_quantile_G_multiY(G, loader_dataset,  Ydim, Xdim, noise_dim, batch_size,
 l1_loss = nn.L1Loss()  # loss(input,target)
 l2_loss = nn.MSELoss()
 
-def eva_G_UniY(G, loader_data, noise_dim, batch_size, J_t_size=50):
+def eva_G_UniY(G, loader_data, noise_dim, test_size, batch_size, J_t_size=50):
     """
     Evaluate a generator model on real data analysis.
     
@@ -276,6 +276,7 @@ def eva_G_UniY(G, loader_data, noise_dim, batch_size, J_t_size=50):
         G (nn.Module): Generator model
         loader_data (DataLoader): Data loader for evaluation
         noise_dim (int): Dimension of noise vector eta
+        test_size (int): The size of testing dataset
         batch_size (int): the batch size of dataset loaded
         J_t_size (int): Number of samples to generate for each input
     
@@ -370,7 +371,7 @@ def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
         # Print results
         print(f"L1 Loss: {mean_eva_L1}")
         print(f"L2 Loss: {mean_eva_L2}")
-        print(f"Coverage Probability: {mean_CP }")
+        print(f"Coverage Probability: {mean_CP/test_size }")
         print(f"Length of Prediction Interval: {mean_LPI }")
         print(f"SD of Upper Bound Error: {mean_SD_UBE }")
         print(f"SD of Lower Bound Error: {mean_SD_LBE }")

@@ -49,6 +49,9 @@ WGR/
 │         ├── ...
 │         └── WGR_M4.ipynb
 ├── real_data/
+│     ├── RealData_UniY.py
+│     ├── RealData_MultiY.py
+│     ├── RealData_Image.py
 ```
 
 ## Components Descriptions

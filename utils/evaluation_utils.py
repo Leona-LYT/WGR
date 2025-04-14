@@ -311,14 +311,14 @@ def eva_G_UniY(G, loader_data, noise_dim, batch_size, J_t_size=50):
         print(test_L1.mean(), test_L2.mean(),CP_test.mean(), PI_test.mean(), std_LB.mean(), std_UB.mean() )   
         return test_L1.mean().detach().numpy(), test_L2.mean().detach().numpy(),CP_test.mean(), PI_test.mean(), std_LB.detach().mean().numpy(), std_UB.detach().mean().numpy()
 
-def eva_real_G(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
+def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
     """
     Evaluate a generator model on real data analysis.
     
     Parameters:
         G (nn.Module): Generator model
         loader_data (DataLoader): Data loader for evaluation
-        Ydim (int): Dimension of output Y
+        Ydim (int): Dimension of the response vector Y
         noise_dim (int): Dimension of noise vector eta
         batch_size (int): the batch size of dataset loaded
         J_t_size (int): Number of samples to generate for each input
@@ -327,72 +327,53 @@ def eva_real_G(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
         tuple: Mean L1 loss, mean L2 loss, coverage probability, length of prediction interval, 
                standard deviation of upper bound error, standard deviation of lower bound error std
     """
+
     num_batches = len(loader_data)
-    quantiles = [0.025, 0.975]  # Lower and upper bounds for 95% prediction interval
     
     with torch.no_grad():
-        eva_L1 = torch.zeros([num_batches, Ydim])
-        eva_L2 = torch.zeros([num_batches, Ydim])
-        Q_025 = torch.zeros([num_batches, batch_size])
-        Q_975 = torch.zeros([num_batches, batch_size])
-        CP = torch.zeros([num_batches, Ydim])
-        LPI = torch.zeros([num_batches, Ydim])
-        SD_UBE = torch.zeros([num_batches, Ydim])
-        SD_LBE = torch.zeros([num_batches, Ydim])
+        test_L1 = torch.zeros([num_batches, Ydim])
+        test_L2 = torch.zeros([num_batches, Ydim])
+        test_025 = torch.zeros([num_batches, batch_size, Ydim])
+        test_975 = torch.zeros([num_batches, batch_size, Ydim])
+        test_CP = torch.zeros([num_batches, batch_size, Ydim])
+        test_PI =  torch.zeros([num_batches, Ydim])
+        test_UBE = torch.zeros([num_batches, Ydim])
+        test_LBE = torch.zeros([num_batches, Ydim])
         
-        for batch_idx, (x, y) in enumerate(loader_data):
-            # Generate multiple samples
-            outputs = []
-            for i in range(J_t_size):
+        for batch_idx, (x,y) in enumerate(loader_data):
+            output = torch.zeros([J_t_size, x.size(0), Ydim])
+            for i in range(500):
                 eta = sample_noise(x.size(0), noise_dim)
-                g_input = torch.cat([x, eta], dim=1).float()
-                outputs.append(G(g_input).view(x.size(0), Ydim).detach())
+                g_input = torch.cat([x,eta],dim=1)
+                output[i] = G(g_input.float()).detach()
             
-            # Stack outputs into a tensor of shape [J_t_size, batch_size, Ydim]
-            output = torch.stack(outputs)
+            test_L1[batch_idx] = torch.mean(l1_loss( output.mean(dim=0), y ),dim=0)
+            test_L2[batch_idx] = torch.mean(l2_loss( output.mean(dim=0), y ),dim=0)
+            test_025[batch_idx] = output.quantile(0.025,axis=0)
+            test_975[batch_idx] = output.quantile(0.975,axis=0)
+            test_PI[batch_idx] = torch.mean(test_975[batch_idx]-test_025[batch_idx],dim=0)
+            test_UBE[batch_idx] = torch.std(F.mse_loss( output.quantile(0.975,axis=0), y, reduction = 'none' ),dim=0)
+            test_LBE[batch_idx] = torch.std(F.mse_loss( output.quantile(0.025,axis=0), y, reduction = 'none' ),dim=0)
             
-            # Calculate metrics
-            eva_L1[batch_idx] = torch.mean(torch.abs(output.mean(dim=0) - y))
-            eva_L2[batch_idx] = torch.mean((output.mean(dim=0) - y) ** 2)
-            
-            # Calculate quantiles
-            lower_bound = output.quantile(quantiles[0], dim=0)  # [batch_size, Ydim]
-            upper_bound = output.quantile(quantiles[1], dim=0)  # [batch_size, Ydim]
-            
-            # Store quantiles
-            Q_025[batch_idx] = lower_bound.squeeze(1)
-            Q_975[batch_idx] = upper_bound.squeeze(1)
-            
-            # Calculate length of prediction interval
-            LPI[batch_idx] = torch.mean(upper_bound - lower_bound, dim=0)
-            
-            # Calculate standard deviation of upper and lower bound errors
-            SD_UBE[batch_idx] = torch.std(F.mse_loss(upper_bound.squeeze(1), y, reduction='none'), dim=0)
-            SD_LBE[batch_idx] = torch.std(F.mse_loss(lower_bound.squeeze(1), y, reduction='none'), dim=0)
-            
-            # Calculate coverage probability (whether y is within prediction interval)
-            in_interval = (y >= lower_bound.squeeze(1)) & (y <= upper_bound.squeeze(1))
-            CP[batch_idx] = in_interval.float().mean(dim=0).view([1])
-        
-        # Calculate average metrics across batches
-        mean_eva_L1 = eva_L1.mean(dim=0)
-        mean_eva_L2 = eva_L2.mean(dim=0)
-        mean_CP = CP.mean(dim=0)
-        mean_LPI = LPI.mean(dim=0)
-        mean_SD_UBE = SD_UBE.mean(dim=0)
-        mean_SD_LBE = SD_LBE.mean(dim=0)
+            for i in range(y.size(0)):
+                for j in range(Ydim):
+                    if y[i,j] >= test_025[batch_idx][i, j] and y[i,j] <= test_975[batch_idx][i, j]:
+                        test_CP[batch_idx][i,j] = 1    
+
+        mean_eva_L1 = torch.mean(test_L1,dim=0).detach().numpy()
+        mean_eva_L2 = torch.mean(test_L2,dim=0).detach().numpy()
+        mean_CP = torch.sum(test_CP,dim=(0,1)).detach().numpy()
+        mean_LPI = torch.mean(test_PI,dim=0).detach().numpy()
+        mean_SD_UBE = torch.mean(test_UBE,dim=0).detach().numpy()
+        mean_SD_LBE = torch.mean(test_LBE,dim=0).detach().numpy()
         
         # Print results
         print(f"L1 Loss: {mean_eva_L1}")
         print(f"L2 Loss: {mean_eva_L2}")
-        print(f"Coverage Probability: {mean_CP.detach().numpy()}")
-        print(f"Length of Prediction Interval: {mean_LPI.detach().numpy()}")
-        print(f"SD of Upper Bound Error: {mean_SD_UBE.detach().numpy()}")
-        print(f"SD of Lower Bound Error: {mean_SD_LBE.detach().numpy()}")
+        print(f"Coverage Probability: {mean_CP }")
+        print(f"Length of Prediction Interval: {mean_LPI }")
+        print(f"SD of Upper Bound Error: {mean_SD_UBE }")
+        print(f"SD of Lower Bound Error: {mean_SD_LBE }")
         
-        return (mean_eva_L1.detach().numpy(),
-                mean_eva_L2.detach().numpy(),
-                mean_CP.detach().numpy(),
-                mean_LPI.detach().numpy(),
-                mean_SD_UBE.detach().numpy(),
-                mean_SD_LBE.detach().numpy())
+        
+        return mean_eva_L1, mean_eva_L2, mean_CP, mean_LPI, mean_SD_UBE, mean_SD_LBE

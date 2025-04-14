@@ -58,7 +58,9 @@ WGR/
 - **data:** Datasets used in this paper.
   1. **simulation data**: All simulation data can be generated using the script `SimulationData.py`.  
   2. **real data**:
-     - **tabular datasets**: This includes the **CT slices dataset** and **UJIndoorLoc dataset**, both of which are included in the repository. Detailed information about these datasets can be found at the UCI Machine Learning Repository.  
+     - **tabular datasets**: This includes the **CT slices dataset** and **UJIndoorLoc dataset**, both of which are included in the repository. Detailed information about these datasets can be found at the UCI Machine Learning Repository:
+       (a). CT slices: [https://archive.ics.uci.edu/dataset/206/relative+location+of+ct+slices+on+axial+axis]
+       (b). UJIIndoorLoc: [https://archive.ics.uci.edu/dataset/310/ujiindoorloc].
      - **image datasets**: Can be downloaded using the script `image_data.py`.
 - **model:**  Contains the neural network architectures used in this paper.
   1. `generator.py` and `discriminator.py` contain the generator and discriminator networks used in this paper.

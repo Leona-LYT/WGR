@@ -7,7 +7,7 @@ sys.path.append(parent_dir)
 
 import torch
 import torch.nn as nn
-from utils.basic_utils import Flatten, Unflatten, UNetBlock
+from models.network_module import Flatten, Unflatten, UNetBlock
 
 # =============================================================================
 # feedforward neural networks

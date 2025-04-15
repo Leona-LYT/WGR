@@ -184,7 +184,6 @@ def plot_performance_across_iterations(G_quan, WGAN=None, show_wgan=False, figsi
 
 
 # visualization of reconstructed mnist data
-# visualization of reconstructed mnist data
 def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25), title=None):
     """
     Visualize MNIST-style dataset, showing two different samples for each digit (0-9).

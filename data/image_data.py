@@ -59,6 +59,7 @@ class DatasetLoader:
         """
         # Download and load training data
         full_train_dataset = torchvision.datasets.MNIST( root=self.data_root, train=True, transform=self.mnist_transform, download=self.download )
+        total_train = len(full_train_dataset)
         
         # Download and load test data
         full_test_dataset = torchvision.datasets.MNIST( root=self.data_root, train=False, transform=self.mnist_transform, download=self.download )
@@ -105,6 +106,7 @@ class DatasetLoader:
         """
         # Download and load training data
         full_train_dataset = torchvision.datasets.CIFAR10( root=self.data_root, train=True, transform=self.cifar10_transform, download=self.download )
+        total_train = len(full_train_dataset)
         
         # Download and load test data
         full_test_dataset = torchvision.datasets.CIFAR10( root=self.data_root, train=False, transform=self.cifar10_transform, download=self.download )
@@ -151,6 +153,7 @@ class DatasetLoader:
         """
         # Download and load training data
         full_train_dataset = torchvision.datasets.STL10( root=self.data_root, split='train', transform=self.stl10_transform, download=self.download )
+        total_train = len(full_train_dataset)
         
         # Download and load test data
         full_test_dataset = torchvision.datasets.STL10( root=self.data_root, split='test', transform=self.stl10_transform, download=self.download )

@@ -363,7 +363,7 @@ def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
 
         mean_eva_L1 = torch.mean(test_L1,dim=0).detach().numpy()
         mean_eva_L2 = torch.mean(test_L2,dim=0).detach().numpy()
-        mean_CP = torch.sum(test_CP,dim=(0,1)).detach().numpy()
+        mean_CP = torch.sum(test_CP,dim=(0,1)).detach().numpy()/test_size
         mean_LPI = torch.mean(test_PI,dim=0).detach().numpy()
         mean_SD_UBE = torch.mean(test_UBE,dim=0).detach().numpy()
         mean_SD_LBE = torch.mean(test_LBE,dim=0).detach().numpy()
@@ -371,7 +371,7 @@ def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, J_t_size=50):
         # Print results
         print(f"L1 Loss: {mean_eva_L1}")
         print(f"L2 Loss: {mean_eva_L2}")
-        print(f"Coverage Probability: {mean_CP/test_size }")
+        print(f"Coverage Probability: {mean_CP }")
         print(f"Length of Prediction Interval: {mean_LPI }")
         print(f"SD of Upper Bound Error: {mean_SD_UBE }")
         print(f"SD of Lower Bound Error: {mean_SD_LBE }")

@@ -41,136 +41,143 @@ class DatasetLoader:
             transforms.Normalize((0.4467, 0.4398, 0.4066), (0.2603, 0.2566, 0.2713))
         ])
     
-    def load_mnist(self):
+    def load_mnist(self, train_size, val_size, test_size, train_batch, val_batch, test_batch ):
         """
-        Load the MNIST dataset
+        Load the MNIST dataset with options to select subsets
+
+        Parameters:
+        train_size (int): Number of samples for training 
+        val_size (int): Number of samples for validation 
+        test_size (int): Number of samples for testing 
+
+        train_batch (int): Batch size for train data 
+        val_batch (int): Batch size for validation data
+        test_batch (int): Batch size for testing data
         
         Returns:
         tuple: (train_loader, test_loader, classes)
         """
         # Download and load training data
-        train_dataset = torchvision.datasets.MNIST(
-            root=self.data_root,
-            train=True,
-            transform=self.mnist_transform,
-            download=self.download
-        )
+        full_train_dataset = torchvision.datasets.MNIST( root=self.data_root, train=True, transform=self.mnist_transform, download=self.download )
         
         # Download and load test data
-        test_dataset = torchvision.datasets.MNIST(
-            root=self.data_root,
-            train=False,
-            transform=self.mnist_transform,
-            download=self.download
-        )
-        
+        full_test_dataset = torchvision.datasets.MNIST( root=self.data_root, train=False, transform=self.mnist_transform, download=self.download )
+
+        # Create train and validation sets
+        train_indices = list(range(min(train_size, total_train)))
+        val_indices = list(range(train_size, min(train_size + val_size, total_train)))
+            
+        train_dataset = Subset(full_train_dataset, train_indices)
+        val_dataset = Subset(full_train_dataset, val_indices)
+
+        if test_size < len(full_test_dataset):
+            test_indices = list(range(min(test_size, len(full_test_dataset))))
+            test_dataset = Subset(full_test_dataset, test_indices)
+        else:
+            test_dataset = full_test_dataset
+
         # Create data loaders
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=self.num_workers
-        )
+        train_loader = DataLoader(train_dataset, batch_size=self.train_batch, shuffle=True, num_workers=self.num_workers)
         
-        test_loader = DataLoader(
-            test_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers
-        )
-        
-        classes = list(range(10))  # 0-9 digits
-        
-        print(f"MNIST: {len(train_dataset)} training samples, {len(test_dataset)} test samples")
-        return train_loader, test_loader, classes
+        val_loader = DataLoader( val_dataset, batch_size=self.val_batch, shuffle=False, num_workers=self.num_workers )
+
+        test_loader = DataLoader( test_dataset, batch_size=self.test_batch, shuffle=False, num_workers=self.num_workers )
+
+        classes = list(range(10))
+
+        return train_loader, val_loader, test_loader, classes
     
-    def load_cifar10(self):
+    def load_cifar10(self, train_size, val_size, test_size, train_batch, val_batch, test_batch ):
         """
-        Load the CIFAR-10 dataset
+        Load the CIFAR-10 dataset with options to select subsets
+
+        Parameters:
+        train_size (int): Number of samples for training 
+        val_size (int): Number of samples for validation 
+        test_size (int): Number of samples for testing 
+
+        train_batch (int): Batch size for train data 
+        val_batch (int): Batch size for validation data
+        test_batch (int): Batch size for testing data
         
         Returns:
         tuple: (train_loader, test_loader, classes)
         """
         # Download and load training data
-        train_dataset = torchvision.datasets.CIFAR10(
-            root=self.data_root,
-            train=True,
-            transform=self.cifar10_transform,
-            download=self.download
-        )
+        full_train_dataset = torchvision.datasets.CIFAR10( root=self.data_root, train=True, transform=self.cifar10_transform, download=self.download )
         
         # Download and load test data
-        test_dataset = torchvision.datasets.CIFAR10(
-            root=self.data_root,
-            train=False,
-            transform=self.cifar10_transform,
-            download=self.download
-        )
+        full_test_dataset = torchvision.datasets.CIFAR10( root=self.data_root, train=False, transform=self.cifar10_transform, download=self.download )
         
+        # Create train and validation sets
+        train_indices = list(range(min(train_size, total_train)))
+        val_indices = list(range(train_size, min(train_size + val_size, total_train)))
+            
+        train_dataset = Subset(full_train_dataset, train_indices)
+        val_dataset = Subset(full_train_dataset, val_indices)
+
+        if test_size < len(full_test_dataset):
+            test_indices = list(range(min(test_size, len(full_test_dataset))))
+            test_dataset = Subset(full_test_dataset, test_indices)
+        else:
+            test_dataset = full_test_dataset
+
         # Create data loaders
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=self.num_workers
-        )
+        train_loader = DataLoader( train_dataset, batch_size=self.train_batch, shuffle=True, num_workers=self.num_workers)
         
-        test_loader = DataLoader(
-            test_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers
-        )
-        
-        classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 
-                   'dog', 'frog', 'horse', 'ship', 'truck']
-        
-        print(f"CIFAR-10: {len(train_dataset)} training samples, {len(test_dataset)} test samples")
-        return train_loader, test_loader, classes
+        val_loader = DataLoader( val_dataset, batch_size=self.val_batch, shuffle=False, num_workers=self.num_workers )
+
+        test_loader = DataLoader( test_dataset, batch_size=self.test_batch, shuffle=False, num_workers=self.num_workers )
+
+        classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+        return train_loader, val_loader, test_loader, classes
     
-    def load_stl10(self):
+    def load_stl10(self, train_size, val_size, test_size, train_batch, val_batch, test_batch ):
         """
-        Load the STL-10 dataset
+        Load the STL-10 dataset with options to select subsets
+
+        Parameters:
+        train_size (int): Number of samples for training 
+        val_size (int): Number of samples for validation 
+        test_size (int): Number of samples for testing 
+
+        train_batch (int): Batch size for train data 
+        val_batch (int): Batch size for validation data
+        test_batch (int): Batch size for testing data
         
         Returns:
         tuple: (train_loader, test_loader, classes)
         """
         # Download and load training data
-        train_dataset = torchvision.datasets.STL10(
-            root=self.data_root,
-            split='train',
-            transform=self.stl10_transform,
-            download=self.download
-        )
+        full_train_dataset = torchvision.datasets.STL10( root=self.data_root, split='train', transform=self.stl10_transform, download=self.download )
         
         # Download and load test data
-        test_dataset = torchvision.datasets.STL10(
-            root=self.data_root,
-            split='test',
-            transform=self.stl10_transform,
-            download=self.download
-        )
+        full_test_dataset = torchvision.datasets.STL10( root=self.data_root, split='test', transform=self.stl10_transform, download=self.download )
         
+        # Create train and validation sets
+        train_indices = list(range(min(train_size, total_train)))
+        val_indices = list(range(train_size, min(train_size + val_size, total_train)))
+            
+        train_dataset = Subset(full_train_dataset, train_indices)
+        val_dataset = Subset(full_train_dataset, val_indices)
+
+        if test_size < len(full_test_dataset):
+            test_indices = list(range(min(test_size, len(full_test_dataset))))
+            test_dataset = Subset(full_test_dataset, test_indices)
+        else:
+            test_dataset = full_test_dataset
+
         # Create data loaders
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=self.num_workers
-        )
+        train_loader = DataLoader( train_dataset, batch_size=self.train_batch, shuffle=True, num_workers=self.num_workers)
         
-        test_loader = DataLoader(
-            test_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers
-        )
-        
-        classes = ['airplane', 'bird', 'car', 'cat', 'deer', 
-                  'dog', 'horse', 'monkey', 'ship', 'truck']
-        
-        print(f"STL-10: {len(train_dataset)} training samples, {len(test_dataset)} test samples")
-        return train_loader, test_loader, classes
+        val_loader = DataLoader( val_dataset, batch_size=self.val_batch, shuffle=False, num_workers=self.num_workers )
+
+        test_loader = DataLoader( test_dataset, batch_size=self.test_batch, shuffle=False, num_workers=self.num_workers )
+
+        classes = ['airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck']
+
+        return train_loader, val_loader, test_loader, classes
     
     def visualize_samples(self, dataset_name, num_samples=10):
         """

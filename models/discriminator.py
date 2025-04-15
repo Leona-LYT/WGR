@@ -6,7 +6,7 @@ sys.path.append(parent_dir)
 
 import torch
 import torch.nn as nn
-from utils.basic_utils import Flatten, Unflatten
+from models.network_module import Flatten, Unflatten
 # =============================================================================
 # feedforward networks
 # =============================================================================

@@ -8,13 +8,11 @@ from utils.validation_utils import val_G
 from data.SimulationData import generate_multi_responses_multiY
 from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penalty, discriminator_loss, generator_loss
 
-
-
 def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Xdim, Ydim, 
                   batch_size,  J_size=50, noise_distribution='gaussian', multivariate=False,
                   lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
                   num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
-                  lr_decay_step=5, lr_decay_gamma=0.1, is_plot=False, plot_iter=500):
+                  lr_decay_step=5, lr_decay_gamma=0.1, save_last = False, is_plot=False, plot_iter=500):
     """
     Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
     
@@ -42,6 +40,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         lr_decay: Learning rate decay strategy ('step', 'plateau', 'cosine', or None)
         lr_decay_step: Step size for StepLR or patience for ReduceLROnPlateau
         lr_decay_gamma: Multiplicative factor for learning rate decay
+        save_last: Whether to save the last trained network (default: False)
         is_plot: Whether to conduct visualization (default: False)
         plot_iter: to conduct the visualization per iteration (default: 500)
     Returns:
@@ -178,8 +177,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                     best_model_d = copy.deepcopy(D.state_dict())
 
                     # Save models
-                    torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_best.pth")
-                    torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_best.pth")
+                    torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
+                    torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
                     print(f"Saved best model with L2: {best_acc:.4f}")
 
                 # for multivariate model, conduct the visulaization
@@ -233,12 +232,12 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             print(f"Epoch {epoch} - D LR: {d_lr:.6f}, G LR: {g_lr:.6f}")
     
     # For multivariate response model, save models at the end of the training
-    if Ydim>1 :
+    if save_last==True :
         best_model_g = copy.deepcopy(G.state_dict())
         best_model_d = copy.deepcopy(D.state_dict())
         
-        torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_best.pth")
-        torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_best.pth")
+        torch.save(G.state_dict(), f"{save_path}/G_"+model_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
+        torch.save(D.state_dict(), f"{save_path}/D_"+model_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
         print(f"Saved best model with L2: {best_acc:.4f}")
 
     # Load the best model at the end of training

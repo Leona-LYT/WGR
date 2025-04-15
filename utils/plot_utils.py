@@ -184,7 +184,8 @@ def plot_performance_across_iterations(G_quan, WGAN=None, show_wgan=False, figsi
 
 
 # visualization of reconstructed mnist data
-def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25)):
+# visualization of reconstructed mnist data
+def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25), title=None):
     """
     Visualize MNIST-style dataset, showing two different samples for each digit (0-9).
     
@@ -192,7 +193,9 @@ def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25)):
         dataset: MNIST dataset or similar format (already loaded)
         save_path: If provided, the image will be saved to this path
         figsize: Figure size
+        title: Custom title for the figure (default: None)
     """
+
     # Create a dictionary to store indices by digit
     digit_indices = {i: [] for i in range(10)}
     
@@ -205,6 +208,8 @@ def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25)):
     # Create figure with smaller width to make columns closer
     fig, axes = plt.subplots(10, 2, figsize=figsize)
     fig.subplots_adjust(wspace=0.00)  # Reduce column spacing
+    
+    fig.suptitle(title, fontsize=16, y=0.98)
     
     # Visualize two samples for each digit
     for digit in range(10):
@@ -245,7 +250,8 @@ def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25)):
     # Display image
     plt.show()
 
-def visualize_custom_digits(images, labels, save_path=None, figsize=(6, 16)):
+
+def visualize_digits(images, labels, save_path=None, figsize=(6, 16), title=None):
     """
     Visualize custom digit images, showing two samples for each digit (0-9).
     
@@ -254,6 +260,7 @@ def visualize_custom_digits(images, labels, save_path=None, figsize=(6, 16)):
         labels: Label array with shape [N]
         save_path: If provided, the image will be saved to this path
         figsize: Figure size
+        title: Custom title for the figure (default: None)
     """
     # Convert images and labels to list format
     data = [(images[i], labels[i]) for i in range(len(images))]
@@ -273,12 +280,8 @@ def visualize_custom_digits(images, labels, save_path=None, figsize=(6, 16)):
     custom_dataset = CustomDataset(data)
     
     # Call visualization function
-    visualize_mnist_digits(custom_dataset, save_path, figsize)
+    visualize_mnist_digits(custom_dataset, save_path, figsize, title)
 
-#examples
-# images_tensor = torch.randn(20, 1, 28, 28)
-# sequential_labels = torch.tensor([i//2 for i in range(20)])
-# visualize_custom_digits(images_tensor, sequential_labels, save_path="visualization.png")
 
 def visualize_images(images, labels=None, num_cols=5, figsize=None, titles=None, 
                     resize_to=(128, 128), cmap=None, save_path=None):

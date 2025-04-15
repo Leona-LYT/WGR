@@ -34,7 +34,7 @@ if 'ipykernel_launcher.py' in sys.argv[0]:  #if not work in jupyter, you can del
     sys.argv = [sys.argv[0]] 
 
 
-parser = argparse.ArgumentParser(description='Implementation of WGR for CT slices dataset')
+parser = argparse.ArgumentParser(description='Implementation of WGR for dataset with one dimensional response Y')
 
 parser.add_argument('--Xdim', default=100, type=int, help='dimensionality of X')
 parser.add_argument('--Ydim', default=1, type=int, help='dimensionality of Y')

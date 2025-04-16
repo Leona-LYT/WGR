@@ -1,5 +1,10 @@
 import torch
+import torch.nn as nn
 from utils.basic_utils import  sample_noise 
+
+#define losses used in the validation
+l1_loss = nn.L1Loss()  # loss(input,target)
+l2_loss = nn.MSELoss()
 
 def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', multivariate=False):
     """

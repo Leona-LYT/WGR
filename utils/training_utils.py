@@ -359,14 +359,14 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
                         print(f"Saved best model with L2: {best_acc:.4f}")
 
                         # plot the reconstruction image on the examples
-                        eg_eta =  sample_noise(20, dim=noise_dim, distribution=noise_distribution ).to(device)
-                        g_exam_input = torch.cat([eg_x[selected_indices].view(20, Xdim), eg_eta], dim=1)
-                        recon_y = G(g_exam_input) 
+                        eg_eta =  sample_noise(batch_size, dim=noise_dim, distribution=noise_distribution ).to(device)
+                        g_exam_input = torch.cat([eg_x.view(batch_size, Xdim), eg_eta], dim=1)
+                        recon_y = G(g_exam_input).view(batch_size,1,12,12)
                         recover_y = convert_generated_to_mnist_range(recon_y)
                         
-                        recon_x = eg_x[selected_indices].clone()
-                        recon_x[:,:,7:19,7:19] = recover_y.view(20,1,12,12).detach()
-                        visualize_digits( images=recon_x , labels = eg_label[selected_indices], figsize=(3, 13), title='(X,hat(Y)')
+                        recon_x = eg_x.clone()
+                        recon_x[selected_indices,:,7:19,7:19] = recover_y[selected_indices,:,:,:].detach()
+                        visualize_digits( images=recon_x[selected_indices] , labels = eg_label[selected_indices], figsize=(3, 13), title='(X,hat(Y)')
             iter_count += 1
 
     

@@ -368,5 +368,28 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
                         recon_x[selected_indices,:,7:19,7:19] = recover_y[selected_indices,:,:,:].detach()
                         visualize_digits( images=recon_x[selected_indices] , labels = eg_label[selected_indices], figsize=(3, 13), title='(X,hat(Y)')
             iter_count += 1
+          
+        if lr_decay == 'step' or lr_decay == 'cosine':
+            if D_scheduler is not None:
+                D_scheduler.step()
+            if G_scheduler is not None:
+                G_scheduler.step()
+        elif lr_decay == 'plateau':
+            if D_scheduler is not None:
+                D_scheduler.step(valid_loss)
+            if G_scheduler is not None:
+                G_scheduler.step(l2_acc)  # Use validation L2 for generator
+        
+        # Print current learning rates
+        if lr_decay:
+            d_lr = D_solver.param_groups[0]['lr']
+            g_lr = G_solver.param_groups[0]['lr']
+            print(f"Epoch {epoch} - D LR: {d_lr:.6f}, G LR: {g_lr:.6f}")      
 
+
+    # Load the best model at the end of training
+    G.load_state_dict(best_model_g)
+    D.load_state_dict(best_model_d)
+    
+    return G, D
     

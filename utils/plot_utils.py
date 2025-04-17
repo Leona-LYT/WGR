@@ -256,7 +256,7 @@ def visualize_mnist_digits(dataset, save_path=None, figsize=(6, 25), title=None)
                 img = img[0]
                 
             # Display image without title
-            axes[digit, col].imshow(img, cmap='gray')
+            axes[digit, col].imshow(img, cmap='gray', interpolation='nearest' )
             axes[digit, col].axis('off')  # Turn off axes
     
     plt.tight_layout()  # Adjust layout

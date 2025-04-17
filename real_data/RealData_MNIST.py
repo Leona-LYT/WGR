@@ -109,10 +109,11 @@ train_WGR_image(D,G, D_solver,G_solver,Xdim=args.Xdim,Ydim=args.Ydim, noise_dim=
                 loader_data=train_loader, loader_val=val_loader, batch_size = args.train_batch, 
                 eg_x =eg_x, eg_label=eg_label, selected_indices=selected_indices, lambda_w=0.9, lambda_l=0.1, num_epochs=400)   
 
-eg_eta =  sample_noise(20, dim=args.noise_dim ).to(device)
-g_exam_input = torch.cat([eg_x[selected_indices].view(20, 784), eg_eta], dim=1)
-recon_y = G(g_exam_input)
+eg_eta =  sample_noise(args.train_batch, dim=args.noise_dim ).to(device)
+g_exam_input = torch.cat([eg_x.view(args.train_batch, args.Xdim), eg_eta], dim=1)
+recon_y = G_net(g_exam_input).view(args.train_batch,1,12,12)
 recover_y = convert_generated_to_mnist_range(recon_y)
-recon_x = eg_x[selected_indices].clone()
-recon_x[:,:,7:19,7:19] = recover_y.view(20,1,12,12).detach()
-visualize_digits( images=recon_x, labels = eg_label[selected_indices], figsize=(3, 13), title='(X,hat(Y)')
+                        
+recon_x = eg_x.clone()
+recon_x[selected_indices,:,7:19,7:19] = recover_y[selected_indices,:,:,:].detach()
+visualize_digits( images=recon_x[selected_indices] , labels = eg_label[selected_indices], figsize=(3, 13), title='(X,hat(Y)')

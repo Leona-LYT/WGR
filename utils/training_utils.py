@@ -3,10 +3,10 @@ import copy
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from utils.plot_utils import plot_kde_2d
-from utils.validation_utils import val_G
+from utils.validation_utils import val_G, val_G_image
 from data.SimulationData import generate_multi_responses_multiY
-from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penalty, discriminator_loss, generator_loss
+from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penalty, discriminator_loss, generator_loss, l1_loss, l2_loss
+from utils.plot_utils import plot_kde_2d, convert_generated_to_mnist_range,  visualize_mnist_digits, visualize_digits 
 
 def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Xdim, Ydim, 
                   batch_size,  J_size=50, noise_distribution='gaussian', multivariate=False,
@@ -245,3 +245,128 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
     D.load_state_dict(best_model_d)
     
     return G, D
+
+def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data , 
+                    loader_val , batch_size,  eg_x, eg_label, selected_indices, lambda_w=0.9, lambda_l=0.1, 
+                    noise_distribution= 'gaussian', save_path='.', num_epochs=10, start_eva=1000,  eva_iter = 50, data_type ='mnist',
+                    device='cpu', lr_decay=None, r_decay_step=5, lr_decay_gamma=0.1, is_image=False ):
+    """
+    Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
+    
+    Args:
+        D: Discriminator model
+        G: Generator model
+        D_solver: Discriminator optimizer
+        G_solver: Generator optimizer
+        noise_dim: Dimension of noise vector
+        Xdim: Dimension of covariate X
+        Ydim: Dimension of response Y
+        batch_size: Batch size
+        loader_data: Data loader for training set
+        loader_val: Data loader for validation set
+        eg_x: Sample used to show the reconstruction performance
+        eg_label: label of the eg_x
+        selected_indices: indices for eg_x to sort it from 0 to 1
+        noise_distribution: Distribution for noise sampling (default: 'gaussian')
+        lambda_w: Weight for Wasserstein loss  (default: 0.9)
+        lambda_l: Weight for L2 regularization  (default: 0.1)
+        save_path: Path to save models (default: './ ')
+        start_eva: Iteration to start evaluation (default: 1000)
+        eva_iter: to conduct the validation per iteration (default: 50)
+        num_epochs: Number of training epochs (default: 10)
+        num_samples: Number of noise samples generated for each data point in validation (default: 100)
+        device: Device to train on (default: 'cpu')
+        lr_decay: Learning rate decay strategy ('step', 'plateau', 'cosine', or None)
+        lr_decay_step: Step size for StepLR or patience for ReduceLROnPlateau
+        lr_decay_gamma: Multiplicative factor for learning rate decay
+    Returns:
+        tuple: Best validation scores and final models
+    """
+    # Initialize learning rate schedulers if requested
+    D_scheduler, G_scheduler = None, None
+    if lr_decay == 'step':
+        D_scheduler = torch.optim.lr_scheduler.StepLR(
+            D_solver, step_size=lr_decay_step, gamma=lr_decay_gamma)
+        G_scheduler = torch.optim.lr_scheduler.StepLR(
+            G_solver, step_size=lr_decay_step, gamma=lr_decay_gamma)
+    elif lr_decay == 'plateau':
+        D_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            D_solver, mode='min', factor=lr_decay_gamma, patience=lr_decay_step )
+        G_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            G_solver, mode='min', factor=lr_decay_gamma, patience=lr_decay_step )
+    elif lr_decay == 'cosine':
+        D_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            D_solver, T_max=num_epochs, eta_min=0)
+        G_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            G_solver, T_max=num_epochs, eta_min=0)
+        
+    iter_count = 0 
+    best_acc = 5
+    
+    best_model_g = copy.deepcopy(G.state_dict())
+    best_model_d = copy.deepcopy(D.state_dict())
+    
+    for epoch in range(num_epochs):
+        for batch_idx, (x,y, label) in enumerate(loader_data):
+            if x.size(0) != batch_size:
+                continue
+    
+            eta = sample_noise(x.size(0), noise_dim, distribution=noise_distribution)
+            x_data = x.view(x.size(0),784)
+            g_input = torch.cat([x_data,eta],dim=1)
+            
+            #train D
+            D_solver.zero_grad()
+            real_images = x.clone()
+            real_images[:,:,7:19,7:19] = y
+            logits_real = D(real_images)
+            
+            fake_y = G(g_input).view(x.size(0),1,12,12).detach()
+            fake_images = x.clone()
+            fake_images[:,:,7:19,7:19] = fake_y
+            logits_fake = D(fake_images)
+            
+            penalty = calculate_gradient_penalty(D,real_images,fake_images,device, is_image=True)
+            d_error = discriminator_loss(logits_real, logits_fake) + 10 * penalty
+            d_error.backward() 
+            D_solver.step()
+            
+            # train G
+            G_solver.zero_grad()
+            fake_y = G(g_input).view(x.size(0),1,12,12)
+            fake_images[:,:,7:19,7:19] = fake_y
+            
+            gen_logits_fake = D(fake_images)
+            g_error = lambda_w * generator_loss(gen_logits_fake) + lambda_l * l2_loss(fake_y,y)
+            g_error.backward()
+            G_solver.step()
+            
+            if (iter_count % eva_iter == 0):
+                print('Iter: {}, D: {:.4}, G:{:.4}'.format(iter_count,d_error.item(),g_error.item()))
+
+                if (iter_count >= start_eva):
+                    l1_G_Acc, l2_G_Acc= val_G_image(G, loader_data=loader_val, noise_dim=noise_dim, 
+                                                Xdim=Xdim, Ydim=Ydim, multivariate=True)
+                    if l2_G_Acc < best_acc:
+                        print('################## save G model #################')
+                        best_acc = l2_G_Acc.copy()
+                        best_model_g = copy.deepcopy(G.state_dict())
+                        best_model_d = copy.deepcopy(D.state_dict())
+
+                        # Save models
+                        torch.save(G.state_dict(), f"{save_path}/G_"+data_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
+                        torch.save(D.state_dict(), f"{save_path}/D_"+data_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
+                        print(f"Saved best model with L2: {best_acc:.4f}")
+
+                        # plot the reconstruction image on the examples
+                        eg_eta =  sample_noise(20, dim=noise_dim, distribution=noise_distribution ).to(device)
+                        g_exam_input = torch.cat([eg_x[selected_indices].view(20, Xdim), eg_eta], dim=1)
+                        recon_y = G(g_exam_input) 
+                        recover_y = convert_generated_to_mnist_range(recon_y)
+                        
+                        recon_x = eg_x[selected_indices].clone()
+                        recon_x[:,:,7:19,7:19] = recover_y.view(20,1,12,12).detach()
+                        visualize_digits( images=recon_x , labels = eg_label[selected_indices], figsize=(3, 13), title='(X,hat(Y)')
+            iter_count += 1
+
+    

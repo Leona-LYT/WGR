@@ -42,7 +42,7 @@ class DatasetLoader:
         # Define transforms for each dataset
         self.mnist_transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
+            # transforms.Normalize((0.1307,), (0.3081,))
         ])
         
         self.cifar10_transform = transforms.Compose([

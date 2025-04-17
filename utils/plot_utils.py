@@ -6,7 +6,26 @@ import seaborn as sns
 
 import torch
 import torchvision.transforms as transforms
-  
+
+def convert_generated_to_mnist_range(generated_img):
+    """
+    Convert a generated image (typically in the range [-1, 1]) to match 
+    the pixel intensity range observed in the MNIST dataset.
+
+    Parameters:
+        generated_img (Tensor or ndarray): An image tensor with values in [-1, 1].
+
+    Returns:
+        converted (Tensor or ndarray): The image rescaled to the MNIST pixel range.
+    """
+    min_val, max_val = -0.4242, 2.8215
+    range_val = max_val - min_val
+    
+    normalized = (generated_img + 1) / 2
+    
+    converted = normalized * range_val + min_val
+    return converted
+
 def plot_kde_2d(data, cmap='Blues', fill=True, show_cbar=True, thresh=0.05, 
                bw_adjust=0.2, levels=6, fig_size=(8, 6), title=None,xlabel='Y1', ylabel='Y2'):
     """
@@ -280,6 +299,7 @@ def visualize_digits(images, labels, save_path=None, figsize=(6, 16), title=None
     
     # Call visualization function
     visualize_mnist_digits(custom_dataset, save_path, figsize, title)
+
 
 
 def visualize_images(images, labels=None, num_cols=5, figsize=None, titles=None, 

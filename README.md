@@ -83,6 +83,8 @@ WGR/
   1. `RealData_UniY.py`: Provide the code for real data with one dimensional response Y.
   2. `RealData_MultiY.py`: Provide the code for real data with multi-dimensional response Y.
   3. `RealData_MNIST.py`: Provide the code for the reconstruction task of image data. Here, we use MNIST data as an example.
+  4. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
+ 
 
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  

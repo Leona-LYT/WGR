@@ -52,6 +52,7 @@ WGR/
 │     ├── RealData_UniY.py
 │     ├── RealData_MultiY.py
 │     ├── RealData_MNIST.py
+│     ├── MNIST_CNN.ipynb
 ```
 
 ## Components Descriptions

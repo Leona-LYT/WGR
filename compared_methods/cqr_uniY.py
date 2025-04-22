@@ -74,12 +74,15 @@ optimizer = optim.Adam(cqr_net.parameters(), lr=0.001, betas=(0.9, 0.999))
 trained_net = train_quantile_net(model=cqr_net, optimizer = optimizer, X_train=X_train, y_train=y_train, alpha=0.05,epochs=1500)
 lower_correction, upper_correction = conformal_calibration(trained_net, X_cal, y_cal, alpha=0.05)
 
+#compute CP
 coverage = ((y_test >= lower_bounds) & (y_test <= upper_bounds)).sum()/len(y_test)
 print(f"Expected coverage: 95%, Actual coverage: {coverage*100:.1f}%")
 
 #compute PIL
 PI = upper_bounds - lower_bounds
 PIL = torch.mean(PI)
+
+#compute the standard deviation of lower bound error and upper bound error
 LB_std = torch.std(y-lower_bounds)
 UB_std = torch.std(upper_bounds-y)
 

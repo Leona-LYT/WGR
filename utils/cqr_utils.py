@@ -5,12 +5,9 @@ def quantile_loss(y_true, y_pred, quantile):
     error = y_true - y_pred
     return torch.mean(torch.max(quantile * error, (quantile - 1) * error))
 
-def train_quantile_net(X_train, y_train, alpha=0.1, epochs=200, lr=0.001):
+def train_quantile_net(model, X_train, y_train, alpha=0.1, epochs=200):
     """training networks to fit (alpha/2) lower bound and (1-alpha/2) upper bound"""
     input_dim = X_train.shape[1]
-    model = QuantileNet(input_dim)
-    
-    optimizer = optim.Adam(model.parameters(), lr=lr)
     
     X_train_tensor = torch.FloatTensor(X_train)
     y_train_tensor = torch.FloatTensor(y_train).unsqueeze(1)
@@ -50,13 +47,15 @@ def conformal_calibration(model, X_cal, y_cal, alpha=0.05):
     # Calculate nonconformity scores
     lower_scores = lower_pred - y_cal
     upper_scores = y_cal - upper_pred
+
+    scores = torch.maximum(lower_scores,upper_scores)
     
     # Find correction factors
     n_cal = len(y_cal)
     adjusted_quantile = np.ceil((n_cal + 1) * (1 - alpha)) / n_cal
     
-    lower_correction = np.quantile(lower_scores, adjusted_quantile)
-    upper_correction = np.quantile(upper_scores, adjusted_quantile)
+    lower_correction = np.quantile(scores, adjusted_quantile)
+    upper_correction = np.quantile(scores, adjusted_quantile)
     
     return lower_correction, upper_correction
 

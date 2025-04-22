@@ -5,7 +5,7 @@ def quantile_loss(y_true, y_pred, quantile):
     error = y_true - y_pred
     return torch.mean(torch.max(quantile * error, (quantile - 1) * error))
 
-def train_quantile_net(model, X_train, y_train, alpha=0.1, epochs=200):
+def train_quantile_net(model, optimizer, X_train, y_train, alpha=0.1, epochs=200):
     """training networks to fit (alpha/2) lower bound and (1-alpha/2) upper bound"""
     input_dim = X_train.shape[1]
     

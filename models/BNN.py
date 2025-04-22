@@ -206,7 +206,16 @@ class Bayesian_cnn(PyroModule):
                 pyro.sample("obs", dist.Normal(x, torch.ones_like(x)).to_event(1), obs=y)
         
         return x
-        
+
+
+def CP_95(true_Y, LB, UB, sample_size):
+    CP = torch.zeros([sample_size])
+    for i in range(sample_size):
+        if true_Y[i] > LB[i] and true_Y[i] < UB[i]:
+            CP[i] = 1
+    print(CP.sum()/sample_size)
+    return CP.sum()/sample_size
+    
 # Usage examples:
 # B_net = Bayesian_fnn(in_dim=10, out_dim=1, hidden_dims=[32, 16, 8])
 # B_mnist = Bayesian_fnn(input_channels=1, hidden_channels=(32, 64), output_dim=144, input_size=(28, 28))

@@ -117,24 +117,19 @@ def main():
                                              loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, J_size=200,
                                              lambda_w=0.2, lambda_l=0.8, batch_size=args.train_batch, save_path='./', 
                                              model_type='CT_m_', device='cpu', num_epochs=100)
-        
-        # To calcualte the value of criterion of selecting m
-        CT_numerical_results = eva_G_UniY(G=trained_G, loader_data=loader_test, noise_dim=sorted_list[k], 
-                                          batch_size=args.test_batch, J_t_size=500)
 
         m_score = selection_m(L2_value = CT_numerical_results[1], noise_dim=sorted_list[k], Xdim=args.Xdim, train_size=args.train)
         #test_G_mean_sd.append(mean_sd_result.detach().cpu().numpy())
         G_m_score.append(m_score)
-        CT_results.append(CT_numerical_results)
+       
         
     print("m_score:", G_m_score)
 
     #saving the results as csv
     G_m_score_csv = pd.DataFrame(G_m_score)
-    CT_results_csv = pd.DataFrame(CT_results)
 
     G_m_score_csv.to_csv("./G_m_score_CT_d"+str(args.Xdim)+"_m_selection.csv")
-    CT_results_csv.to_csv("./CT_results_CT_d"+str(args.Xdim)+"_m_selection.csv")
+    
 
     return G_m_score
    

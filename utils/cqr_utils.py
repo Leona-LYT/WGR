@@ -1,3 +1,5 @@
+import torch
+
 def quantile_loss(y_true, y_pred, quantile):
     """quantile loss function"""
     error = y_true - y_pred
@@ -42,8 +44,8 @@ def conformal_calibration(model, X_cal, y_cal, alpha=0.05):
     with torch.no_grad():
         X_cal_tensor = torch.FloatTensor(X_cal)
         outputs = model(X_cal_tensor)
-        lower_pred = outputs[:, 0].numpy()
-        upper_pred = outputs[:, 1].numpy()
+        lower_pred = outputs[:, 0] 
+        upper_pred = outputs[:, 1] 
     
     # Calculate nonconformity scores
     lower_scores = lower_pred - y_cal
@@ -64,8 +66,8 @@ def predict_intervals(model, X_test, lower_correction, upper_correction):
     with torch.no_grad():
         X_test_tensor = torch.FloatTensor(X_test)
         outputs = model(X_test_tensor)
-        lower_pred = outputs[:, 0].numpy()
-        upper_pred = outputs[:, 1].numpy()
+        lower_pred = outputs[:, 0] 
+        upper_pred = outputs[:, 1] 
     
     # Apply conformal correction
     lower_bounds = lower_pred - lower_correction

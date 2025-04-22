@@ -208,7 +208,7 @@ class Bayesian_cnn(PyroModule):
         return x
 
 
-def CP_95(true_Y, LB, UB, sample_size):
+def BNN_CP(true_Y, LB, UB, sample_size):
     CP = torch.zeros([sample_size])
     for i in range(sample_size):
         if true_Y[i] > LB[i] and true_Y[i] < UB[i]:

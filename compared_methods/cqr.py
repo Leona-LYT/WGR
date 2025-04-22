@@ -71,7 +71,7 @@ print(args.Xdim, args.Ydim)
 #conduct conformal quantile regression
 cqr_net =  regression_net(in_dim=args.Xdim, out_dim=2, hidden_dims=[128, 64])
 optimizer = optim.Adam(cqr_net.parameters(), lr=0.001, betas=(0.9, 0.999))
-trained_net = train_quantile_net(model=cqr_net, X_train=X_train, y_train=y_train, alpha=0.05,epochs=1500)
+trained_net = train_quantile_net(model=cqr_net, optimizer = optimizer, X_train=X_train, y_train=y_train, alpha=0.05,epochs=1500)
 lower_correction, upper_correction = conformal_calibration(trained_net, X_cal, y_cal, alpha=0.05)
 
 coverage = ((y_test >= lower_bounds) & (y_test <= upper_bounds)).sum()/len(y_test)

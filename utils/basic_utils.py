@@ -148,4 +148,14 @@ def generator_loss(logits_fake):
 
     return loss
 
-
+# =============================================================================
+# bnn evaluation
+# =============================================================================
+def bnn_evaluation(x, y, output):
+    
+    test_L1 = l1_loss( output.mean(dim=0), y )
+    test_L2 = l2_loss( output.mean(dim=0), y )
+ 
+    
+    print(test_L1,test_L2) 
+    return test_L1.detach().item(), test_L2.detach().item() 

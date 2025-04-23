@@ -50,10 +50,13 @@ WGR/
 │         ├── ...
 │         └── WGR_M4.ipynb
 ├── real_data/
-│     ├── RealData_UniY.py
-│     ├── RealData_MultiY.py
+│     ├── RealData_CT.py
+│     ├── RealData_UJI.py
 │     ├── RealData_MNIST.py
 │     ├── MNIST_CNN.ipynb
+├── compared_methods/
+│     ├── bnn_CT.py
+│     ├── cqr_CT.py
 ```
 
 ## Components Descriptions
@@ -82,12 +85,15 @@ WGR/
   4. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
   5.  **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
 - **real_data:** The experiments for the real data analysis can be conducted by the codes provided in this fold.
-  1. `RealData_UniY.py`: Provide the code for real data with one dimensional response Y.
-  2. `RealData_MultiY.py`: Provide the code for real data with multi-dimensional response Y.
+  1. `RealData_CT.py`: Provide the code for CT slices dataset. This code can handle real data analysis with one dimensional response Y.
+  2. `RealData_UJI.py`: Provide the code for UJINdoorLoc dataset. This code can handle real data analysis with multi-dimensional response Y.
   3. `RealData_MNIST.py`: Provide the code for the reconstruction task of image data. Here, we use MNIST data as an example.
   4. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
+- **compared_methods:**
+  1. `bnn_CT.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset.
+  2. `cqr_CT.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset, which is employed to construct the prediction interval.
  
-
+     
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  
 2. Clone the repository and install the required Python modules.  

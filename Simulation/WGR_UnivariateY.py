@@ -101,19 +101,18 @@ def main():
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, 
                                              loader_train = loader_train, loader_val=loader_val,
                                              noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
-                                             batch_size=args.train_batch, lambda_w=0.95,lambda_l=0.05, 
-                                             multivariate=True, save_path='./', model_type=args.model, 
-                                             device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=500)
+                                             batch_size=args.train_batch, lambda_w=0.9,lambda_l=0.1, 
+                                             multivariate=False, save_path='./', model_type=args.model, 
+                                             device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=200)
         
         # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
-        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim, 
-                                            Xdim=args.Xdim, batch_size=args.test_batch, model_type=args.model, 
-                                            loader_dataset = loader_test, Ydim=args.Ydim,is_multivariate=True )
+        trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
+                                             loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
+                                             batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=200)
         
-        # Calculate the MSE of conditional quantiles at different levels.
-        quantile_result = MSE_quantile_G_multiY(G = trained_G, loader_dataset = loader_test, Ydim=args.Ydim, 
-                                                Xdim=args.Xdim, noise_dim=args.noise_dim, batch_size=args.test_batch, 
-                                                test_size = args.test, model_type=args.model)
+        # To calcualte the value of criterion of selecting m
+        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim, 
+                                    batch_size=100,  model_type=args.model, loader_dataset = loader_train )
         
         test_G_mean_sd.append(np.array(mean_sd_result))
         test_G_quantile.append(quantile_result.copy() if isinstance(quantile_result, np.ndarray) else np.array(list(quantile_result)))

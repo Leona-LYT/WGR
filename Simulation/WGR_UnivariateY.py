@@ -98,14 +98,6 @@ def main():
         G_solver = optim.RMSprop(G_net.parameters(),lr = 0.0002)
 
         # Training
-        trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, 
-                                             loader_train = loader_train, loader_val=loader_val,
-                                             noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
-                                             batch_size=args.train_batch, lambda_w=0.9,lambda_l=0.1, 
-                                             multivariate=False, save_path='./', model_type=args.model, 
-                                             device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=200)
-        
-        # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
                                              loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
                                              batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=200)
@@ -114,6 +106,10 @@ def main():
         mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim, 
                                     batch_size=100,  model_type=args.model, loader_dataset = loader_train )
         
+        # Calculate the MSE of conditional quantiles at different levels.
+        test_G_quantile = MSE_quantile_G_uniY(G = trained_G, loader_dataset = loader_test , noise_dim=args.noise_dim, Xdim=args.Xdim,
+                                      test_size = args.test,  batch_size=args.test_batch, model_type=args.model)
+        
         test_G_mean_sd.append(np.array(mean_sd_result))
         test_G_quantile.append(quantile_result.copy() if isinstance(quantile_result, np.ndarray) else np.array(list(quantile_result)))
         
@@ -121,8 +117,8 @@ def main():
     print("MSE(quantile) at level {0.05, 0.25, 0.50, 0.75, 0.95}:", test_G_quantile)
 
     #saving the results as csv
-    test_G_mean_sd_csv = pd.DataFrame(np.array(test_G_mean_sd).reshape(args.reps,8))
-    test_G_quantile_csv = pd.DataFrame(np.array(test_G_quantile)reshape(args.reps,10))
+    test_G_mean_sd_csv = pd.DataFrame(np.array(test_G_mean_sd) )
+    test_G_quantile_csv = pd.DataFrame(np.array(test_G_quantile) )
 
     test_G_mean_sd_csv.to_csv("./test_G_mean_sd_"+str(args.model)+"_d"+str(args.Xdim)+".csv")
     test_G_quantile_csv.to_csv("./test_G_quantile_"+str(args.model)+"_d"+str(args.Xdim)+".csv")

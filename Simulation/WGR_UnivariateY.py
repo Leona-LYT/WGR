@@ -70,7 +70,7 @@ def main():
 
         setup_seed(seed[k].detach().numpy().item())
 
-        # Generate data from M3
+        # Generate data 
         data_gen = DataGenerator(args)
         DATA = data_gen.generate_data(args.model)
 

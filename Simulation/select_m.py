@@ -100,7 +100,7 @@ def main():
         # Training
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
                                              loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
-                                             batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=26)
+                                             batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=50)
         
         # To calcualte the value of criterion of selecting m
         mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim, 

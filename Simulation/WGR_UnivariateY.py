@@ -99,11 +99,11 @@ def main():
 
         # Training
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
-                                             loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
+                                             loader_val=loader_val, noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
                                              batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=200)
         
         # To calcualte the value of criterion of selecting m
-        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim, 
+        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=args.noise_dim, Xdim=args.Xdim, 
                                     batch_size=100,  model_type=args.model, loader_dataset = loader_train )
         
         # Calculate the MSE of conditional quantiles at different levels.

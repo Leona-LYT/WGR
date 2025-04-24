@@ -17,7 +17,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau 
 
-from utils.basic_utils import setup_seed
+from utils.basic_utils import setup_seed, selection_m
 from data.SimulationData import DataGenerator 
 from utils.training_utils import train_WGR_fnn
 from utils.evaluation_utils import L1L2_MSE_mean_sd_G, MSE_quantile_G_uniY
@@ -33,12 +33,12 @@ if 'ipykernel_launcher.py' in sys.argv[0]:  #if not work in jupyter, you can del
 
 parser = argparse.ArgumentParser(description='Implementation of WGR for M1')
 
-parser.add_argument('--Xdim', default=100, type=int, help='dimensionality of X')
+parser.add_argument('--Xdim', default=5, type=int, help='dimensionality of X')
 parser.add_argument('--Ydim', default=1, type=int, help='dimensionality of Y')
 parser.add_argument('--model', default='M2', type=str, help='model')
 
 parser.add_argument('--noise_dist', default='gaussian', type=str, help='distribution of noise vector')
-parser.add_argument('--m_set', default=10, type=int, help='the size of the candidate set of the dimensionality of noise vector')
+parser.add_argument('--m_set', default=20, type=int, help='the size of the candidate set of the dimensionality of noise vector')
 
 parser.add_argument('--train', default=5000, type=int, help='size of train dataset')
 parser.add_argument('--val', default=1000, type=int, help='size of validation dataset')
@@ -75,7 +75,7 @@ test_dataset = TensorDataset( test_X.float(), test_Y.float() )
 loader_test  = DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
 
 # Generate the candidate set for m dynamically
-candidate_set = set(range(args.Ydim, args.Ydim + 10))  # {q, q+1, ..., q+9}; the size of candidate set is 10.  
+candidate_set = set(range(args.Ydim, args.Ydim + 20))  # {q, q+1, ..., q+9}; the size of candidate set is 10.  
 sorted_list = sorted(candidate_set)  # Convert set to a sorted list
 
 def main():
@@ -100,7 +100,7 @@ def main():
         # Training
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
                                              loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
-                                             batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=50)
+                                             batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=200)
         
         # To calcualte the value of criterion of selecting m
         mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim, 
@@ -121,4 +121,3 @@ def main():
 
 #run
 main()
-

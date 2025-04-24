@@ -91,11 +91,12 @@ def main():
         global G_net, D_net, trained_G, trained_D
 
         # Define generator network and discriminator network
-        G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [512, 512, 512])
-        D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [512, 512, 512])
-
-        D_solver = optim.RMSprop(D_net.parameters(),lr = 0.0002)
-        G_solver = optim.RMSprop(G_net.parameters(),lr = 0.0002)
+        G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [64, 32])
+        D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [64, 32])
+        
+        # Initialize RMSprop optimizers
+        D_solver = optim.Adam(D_net.parameters(), lr=0.001, betas=(0.9, 0.999))
+        G_solver = optim.Adam(G_net.parameters(), lr=0.001, betas=(0.9, 0.999))  
 
         # Training
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 

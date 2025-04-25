@@ -118,6 +118,7 @@ def main():
                                              lambda_w=0.2, lambda_l=0.8, batch_size=args.train_batch, save_path='./', 
                                              model_type='CT_m_', device='cpu', num_epochs=100)
 
+         CT_numerical_results = eva_G_UniY(G=G_net, loader_data=loader_test, noise_dim=sorted_list[k], batch_size=args.test_batch, J_t_size=500)
         m_score = selection_m(L2_value = CT_numerical_results[1], noise_dim=sorted_list[k], Xdim=args.Xdim, train_size=args.train)
         #test_G_mean_sd.append(mean_sd_result.detach().cpu().numpy())
         G_m_score.append(m_score)

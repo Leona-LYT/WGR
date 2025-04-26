@@ -150,14 +150,14 @@ D_solver = torch.optim.RMSprop(D_net.parameters(),lr = 0.001)
 G_solver = torch.optim.RMSprop(G_net.parameters(),lr = 0.001)
 
 # Training
-trained_G, trained_D = training_utils.train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, loader_val=loader_val, noise_dim=args.noise_dim,
-                                                    Xdim=args.Xdim, Ydim=args.Ydim, batch_size=args.train_batch, save_path='./', device='cpu', num_epochs=200)
+trained_G, trained_D = training_utils.train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, loader_val=loader_val, noise_dim=5,
+                                                    Xdim=args.Xdim, Ydim=1, batch_size=128, save_path='./', device='cpu', num_epochs=200)
 
 # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
-test_G_mean_sd = evaluation_utils.L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim,  batch_size=args.test_batch, loader_dataset = loader_test )
+test_G_mean_sd = evaluation_utils.L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=5,  batch_size=100, loader_dataset = loader_test )
 
 # Calculate the MSE of conditional quantiles at different levels.
-test_G_quantile = evaluation_utils.MSE_quantile_G_uniY(G = trained_G, loader_dataset = loader_test , noise_dim=args.noise_dim, test_size = args.test,  batch_size=args.test_batch)
+test_G_quantile = evaluation_utils.MSE_quantile_G_uniY(G = trained_G, loader_dataset = loader_test , noise_dim=5, test_size = args.test,  batch_size=100)
 ```
      
 ## 📚 References

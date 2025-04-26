@@ -44,7 +44,10 @@ WGR/
 │     ├── training_utils.py
 │     ├── validation_utils.py
 ├── simulation/
-│     ├── WGR_UnivariateY.py
+│     ├── WGR_UniY.py
+│     ├── WGR_MultiY.py
+│     ├── select_m_UniY.py
+│     ├── select_m_MultiY.py
 │     ├── examples/
 │         ├── WGR_M1.ipynb
 │         ├── ...
@@ -80,20 +83,22 @@ WGR/
   5. `plot_utils.py': Visualization utilities for generating figures used in the paper.
   6. 'cqr_utils.py': Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the DNLS framework.
 - **Simulation:** Contains code and examples for the simulation studies.  
-  1. The simulation experiments can be conducted using the scripts `WGR_Univariate.py` and `WGR_Multivariate.py`.  
-  2. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).
-  3. The dimensionality of the noise vector \( \eta \) can be selected by using the function `selection_m` provided in the script `basic_utils.py` located in the `utils` folder. An example demonstrating the selection procedure is given in `select_m.py` in the `Simulation` folder.
-  4. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
-  5.  **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0.
+  1. `WGR_UniY.py`: Provide the code for the simulation experiments with one-dimensional response Y.
+  2. `WGR_MultiY.py`:Provide the code for the simulation experiments with multi-dimensional response Y.
+  3. `select_m_UniY.py` and `select_m_MultiY.py`: Provide the code the selection of m in simulation studies.
+  4. **examples**: Four Jupyter notebooks demonstrate how to run the proposed WGR method on the four simulation models considered in the paper (each notebook shows results from a single replication).
+  5. Sensitivity analysis can be performed by changing the settings defined in the `argparse` configuration within the script.
+
 - **real_data:** The experiments for the real data analysis can be conducted by the codes provided in this fold.
   1. `RealData_CT.py`: Provide the code for CT slices dataset. This code can handle real data analysis with one dimensional response Y.
   2. `RealData_UJI.py`: Provide the code for UJINdoorLoc dataset. This code can handle real data analysis with multi-dimensional response Y.
   3. `RealData_MNIST.py`: Provide the code for the reconstruction task of image data. Here, we use MNIST data as an example.
-  4. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
+  4. `select_m_CT.py`: Provide the code for the selection of m in the analysis of the CT slice dataset.
+  5. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
 - **compared_methods:**
   1. `bnn_CT.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset.
   2. `cqr_CT.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset, which is employed to construct the prediction interval.
- 
+  3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. 
      
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  

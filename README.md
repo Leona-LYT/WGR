@@ -100,7 +100,7 @@ WGR/
   2. `cqr_CT.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset, which is employed to construct the prediction interval.
   3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. 
 
-## How to use it
+
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  
 2. Clone the repository and install the required Python modules.  

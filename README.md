@@ -108,6 +108,12 @@ WGR/
 ### Usage Example
 Below is one simple demonstration. More details can be found in the folders `Simulation` and `real_data`.
 ```python
+import sys
+import os
+current_dir = os.getcwd()  #use to import the defined functions
+parent_dir = os.path.dirname(current_dir) 
+sys.path.append(parent_dir)  
+
 import torch
 from data.SimulationData import DataGenerator
 from utils import training_utils, evaluation_utils

@@ -53,6 +53,7 @@ WGR/
 │     ├── RealData_CT.py
 │     ├── RealData_UJI.py
 │     ├── RealData_MNIST.py
+│     ├── select_m_CT.py
 │     ├── MNIST_CNN.ipynb
 ├── compared_methods/
 │     ├── bnn_CT.py

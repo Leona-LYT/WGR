@@ -99,12 +99,17 @@ WGR/
   1. `bnn_CT.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset.
   2. `cqr_CT.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset, which is employed to construct the prediction interval.
   3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. 
-     
+
+## How to use it
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  
 2. Clone the repository and install the required Python modules.  
 3. Run the experiments using the code provided in the `simulation/` and `real_data/` folders.
-   
+### Usage example
+Below is one simple demonstration. 
+```
+import torch
+``` 
      
 ## 📚 References
 Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.

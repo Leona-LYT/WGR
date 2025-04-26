@@ -76,12 +76,12 @@ WGR/
   2. `regression_net.py` contains the networks used in the Deep Nonparametric Least Squares (DNLS) method.
   3. `BNN.py`: contains the networks used in the Bayesian Neural Network methods (Jospin et al., 2022).
 - **utils:**  Contains utility functions for running experiments.
-  1. `basic_utils.py': Basic utility functions.
-  2. `training_utils.py': Training routines for each method implemented in the paper. For real data analysis, the `model_type` parameter may be specified as either the dataset name or the keyword `real_data`.
-  3. `evaluation_utilis.py': Evaluation procedures for assessing method performance in both simulation studies and real data analyses.  
-  4. `validation_utilis.py': Validation routines for model selection and performance tracking.  
-  5. `plot_utils.py': Visualization utilities for generating figures used in the paper.
-  6. 'cqr_utils.py': Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the DNLS framework.
+  1. `basic_utils.py`: Basic utility functions.
+  2. `training_utils.py`: Training routines for each method implemented in the paper. For real data analysis, the `model_type` parameter may be specified as either the dataset name or the keyword `real_data`.
+  3. `evaluation_utilis.py`: Evaluation procedures for assessing method performance in both simulation studies and real data analyses.  
+  4. `validation_utilis.py`: Validation routines for model selection and performance tracking.  
+  5. `plot_utils.py`: Visualization utilities for generating figures used in the paper.
+  6. 'cqr_utils.py`: Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the DNLS framework.
 - **Simulation:** Contains code and examples for the simulation studies.  
   1. `WGR_UniY.py`: Provide the code for the simulation experiments with one-dimensional response Y.
   2. `WGR_MultiY.py`:Provide the code for the simulation experiments with multi-dimensional response Y.

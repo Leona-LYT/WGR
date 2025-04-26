@@ -105,11 +105,7 @@ WGR/
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  
 2. Clone the repository and install the required Python modules.  
 3. Run the experiments using the code provided in the `simulation/` and `real_data/` folders.
-### Usage example
-Below is one simple demonstration. 
-```
-import torch
-``` 
+
      
 ## 📚 References
 Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.

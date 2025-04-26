@@ -100,12 +100,62 @@ WGR/
   2. `cqr_CT.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset, which is employed to construct the prediction interval.
   3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. 
 
-
+## How to use 
 ### Workflow and Preparations
 1. Install the PyTorch framework by following the official installation guide at [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/).  
 2. Clone the repository and install the required Python modules.  
 3. Run the experiments using the code provided in the `simulation/` and `real_data/` folders.
+### Usage Example
+Below is one simple demonstration. More details can be found in the folders `Simulation` and `real_data`.
+```python
+import torch
+from data.SimulationData import DataGenerator
+from utils import training_utils, evaluation_utils
+from models import generator, discriminator
 
+import argparse
+parser = argparse.ArgumentParser(description='A simple example for WGR')
+parser.add_argument('--Xdim', default=5, type=int, help='dimensionality of X')
+parser.add_argument('--train', default=5000, type=int, help='size of train dataset')
+parser.add_argument('--val', default=1000, type=int, help='size of validation dataset')
+parser.add_argument('--test', default=1000, type=int, help='size of test dataset')
+args = parser.parse_args()
+
+#simulate data
+data_gen = DataGenerator(args)
+DATA = data_gen.generate_data('M1')
+train_X, train_Y = DATA['train_X'], DATA['train_Y']
+val_X, val_Y = DATA['val_X'], DATA['val_Y']
+test_X, test_Y = DATA['test_X'], DATA['test_Y']
+
+# Create TensorDatasets and initialize a DataLoaders
+train_dataset = torch.utils.data.TensorDataset( train_X.float(), train_Y.float() )
+loader_train = torch.utils.data.DataLoader(train_dataset , batch_size=args.train_batch, shuffle=True)
+
+val_dataset = torch.utils.data.TensorDataset( val_X.float(), val_Y.float() )
+loader_val = torch.utils.data.DataLoader(val_dataset , batch_size=args.val_batch, shuffle=True)
+
+test_dataset = torch.utils.data.TensorDataset( test_X.float(), test_Y.float() )
+loader_test  = torch.utils.data.DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
+
+# Define generator network and discriminator network
+G_net = generator.generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [64, 32])
+D_net = discriminator.discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [64, 32])
+
+# Initialize RMSprop optimizers
+D_solver = torch.optim.RMSprop(D_net.parameters(),lr = 0.001)
+G_solver = torch.optim.RMSprop(G_net.parameters(),lr = 0.001)
+
+# Training
+trained_G, trained_D = training_utils.train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, loader_val=loader_val, noise_dim=args.noise_dim,
+                                                    Xdim=args.Xdim, Ydim=args.Ydim, batch_size=args.train_batch, save_path='./', device='cpu', num_epochs=200)
+
+# Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
+test_G_mean_sd = evaluation_utils.L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.test, noise_dim=args.noise_dim,  batch_size=args.test_batch, loader_dataset = loader_test )
+
+# Calculate the MSE of conditional quantiles at different levels.
+test_G_quantile = evaluation_utils.MSE_quantile_G_uniY(G = trained_G, loader_dataset = loader_test , noise_dim=args.noise_dim, test_size = args.test,  batch_size=args.test_batch)
+```
      
 ## 📚 References
 Jospin, L. V., Laga, H., Boussaid, F., Buntine, W., & Bennamoun, M. (2022). Hands-on Bayesian neural networks—A tutorial for deep learning users. IEEE Computational Intelligence Magazine, 17(2), 29-48.

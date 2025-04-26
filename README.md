@@ -130,23 +130,20 @@ args = parser.parse_args()
 #simulate data
 data_gen = DataGenerator(args)
 DATA = data_gen.generate_data('M1')
-train_X, train_Y = DATA['train_X'], DATA['train_Y']
-val_X, val_Y = DATA['val_X'], DATA['val_Y']
-test_X, test_Y = DATA['test_X'], DATA['test_Y']
 
 # Create TensorDatasets and initialize a DataLoaders
-train_dataset = torch.utils.data.TensorDataset( train_X.float(), train_Y.float() )
-loader_train = torch.utils.data.DataLoader(train_dataset , batch_size=args.train_batch, shuffle=True)
+train_dataset = torch.utils.data.TensorDataset( DATA['train_X'].float(), DATA['train_Y'].float() )
+loader_train = torch.utils.data.DataLoader(train_dataset , batch_size=128, shuffle=True)
 
-val_dataset = torch.utils.data.TensorDataset( val_X.float(), val_Y.float() )
-loader_val = torch.utils.data.DataLoader(val_dataset , batch_size=args.val_batch, shuffle=True)
+val_dataset = torch.utils.data.TensorDataset(DATA[val_X'].float(), DATA[val_Y'].float() )
+loader_val = torch.utils.data.DataLoader(val_dataset , batch_size=100, shuffle=True)
 
-test_dataset = torch.utils.data.TensorDataset( test_X.float(), test_Y.float() )
-loader_test  = torch.utils.data.DataLoader(test_dataset , batch_size=args.test_batch, shuffle=True)
+test_dataset = torch.utils.data.TensorDataset( DATA[test_X'].float(), DATA[test_Y'].float() )
+loader_test  = torch.utils.data.DataLoader(test_dataset , batch_size=100, shuffle=True)
 
 # Define generator network and discriminator network
-G_net = generator.generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=args.noise_dim, hidden_dims = [64, 32])
-D_net = discriminator.discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [64, 32])
+G_net = generator.generator_fnn(Xdim=args.Xdim, Ydim=1, noise_dim=5, hidden_dims = [64, 32])
+D_net = discriminator.discriminator_fnn(input_dim=args.Xdim+1, hidden_dims = [64, 32])
 
 # Initialize RMSprop optimizers
 D_solver = torch.optim.RMSprop(D_net.parameters(),lr = 0.001)

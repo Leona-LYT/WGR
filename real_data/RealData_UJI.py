@@ -23,7 +23,7 @@ from utils.basic_utils import setup_seed, get_dimension
 from models.generator import generator_fnn
 from models.discriminator import discriminator_fnn
 from utils.training_utils import train_WGR_fnn
-from utils.evaluation_utils import eva_CT_G, eva_real_G
+from utils.evaluation_utils import eva_G_MultiY
 
 import argparse
 

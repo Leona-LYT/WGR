@@ -46,7 +46,7 @@ parser.add_argument('--train', default=5000, type=int, help='size of train datas
 parser.add_argument('--val', default=1000, type=int, help='size of validation dataset')
 parser.add_argument('--test', default=1000, type=int, help='size of test dataset')
 
-parser.add_argument('--train_batch', default=100, type=int, metavar='BS', help='batch size while training')
+parser.add_argument('--train_batch', default=128, type=int, metavar='BS', help='batch size while training')
 parser.add_argument('--val_batch', default=100, type=int, metavar='BS', help='batch size while validation')
 parser.add_argument('--test_batch', default=100, type=int, metavar='BS', help='batch size while testing')
 parser.add_argument('--epochs', default=50, type=int, help='number of epochs to train')
@@ -109,15 +109,10 @@ def main():
                                              multivariate=True, save_path='./', model_type=args.model, 
                                              device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=500)
 
-        # Calculate the L1 and L2 error, MSE of conditional mean and conditional standard deviation on the test data  
-        test_G_mean_sd = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim,
-                                            batch_size=args.train_batch,  model_type=args.model, loader_dataset = loader_train,
-                                            Ydim=args.Ydim,is_multivariate=True )
-
         
-
-        m_score = selection_m(L2_value = test_G_mean_sd[1], noise_dim=sorted_list[k], Xdim=args.Xdim, train_size=args.train)
-        #test_G_mean_sd.append(mean_sd_result.detach().cpu().numpy())
+        #compute m score
+        m_score = selection_m(G=trained_G, x=train_X, y=train_Y, noise_dim=sorted_list[0], Xdim=args.Xdim, Ydim=args.Ydim, train_size=args.train)
+        
         G_m_score.append(m_score)
         test_G_quantile.append(quantile_result.copy() if isinstance(quantile_result, np.ndarray) else np.array(list(quantile_result)))
         
@@ -127,10 +122,6 @@ def main():
     G_m_score_csv = pd.DataFrame(G_m_score)
     G_m_score_csv.to_csv("./G_m_score_"+str(args.model)+"_d"+str(args.Xdim)+"_m_selection.csv")
 
-    #saving the results as csv
-    test_G_quantile_csv = pd.DataFrame(np.array(test_G_quantile).reshape(args.reps,10))
-    test_G_quantile_csv.to_csv("./test_G_quantile_"+str(args.model)+"_d"+str(args.Xdim)+".csv")
-    
    
 
 

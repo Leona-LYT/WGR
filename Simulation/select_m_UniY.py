@@ -102,12 +102,8 @@ def main():
                                              loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
                                              batch_size=args.train_batch, save_path='./', model_type=args.model, device='cpu', num_epochs=200)
         
-        # To calcualte the value of criterion of selecting m
-        mean_sd_result = L1L2_MSE_mean_sd_G(G = trained_G,  test_size = args.train, noise_dim=sorted_list[k], Xdim=args.Xdim, 
-                                    batch_size=100,  model_type=args.model, loader_dataset = loader_train )
+        m_score = selection_m(G=trained_G, x=train_X, y=train_Y, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, train_size=args.train)
 
-        m_score = selection_m(L2_value = mean_sd_result[1], noise_dim=sorted_list[k], Xdim=args.Xdim, train_size=args.train)
-        #test_G_mean_sd.append(mean_sd_result.detach().cpu().numpy())
         G_m_score.append(m_score)
         
     print("m_score:", G_m_score)

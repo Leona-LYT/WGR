@@ -136,7 +136,7 @@ for k in range(args.m_set):
     trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, loader_train = loader_train, 
                                      loader_val=loader_val, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
                                      lambda_w=0.95, lambda_l=0.05, batch_size=args.train_batch, save_path='./UJI/',  start_eva=100, 
-                                     model_type='CT', device='cpu', num_epochs=50, multivariate=True)
+                                     model_type='UJI', device='cpu', num_epochs=50, multivariate=True)
     #evaluate
     m_score = selection_m(G=trained_G, x=X_train, y=y_train, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, train_size=args.train)
     

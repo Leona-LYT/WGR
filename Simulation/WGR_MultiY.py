@@ -103,7 +103,7 @@ def main():
         trained_G, trained_D = train_WGR_fnn(D=D_net, G=G_net, D_solver=D_solver, G_solver=G_solver, 
                                              loader_train = loader_train, loader_val=loader_val,
                                              noise_dim=args.noise_dim, Xdim=args.Xdim, Ydim=args.Ydim, 
-                                             batch_size=args.train_batch, lambda_w=0.95,lambda_l=0.05, 
+                                             batch_size=args.train_batch, lambda_w=0.95,lambda_l=0.05, save_last=True,
                                              multivariate=True, save_path='./', model_type=args.model, save_name = k,
                                              device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=500)
         

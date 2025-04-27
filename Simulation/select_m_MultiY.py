@@ -106,7 +106,7 @@ def main():
                                              loader_train = loader_train, loader_val=loader_val,
                                              noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, 
                                              batch_size=args.train_batch, lambda_w=0.95,lambda_l=0.05, 
-                                             multivariate=True, save_path='./', model_type=args.model, last_save=True,
+                                             multivariate=True, save_path='./', model_type=args.model,save_last =True,
                                              device='cpu', num_epochs=args.epochs, is_plot=True, plot_iter=500)
 
         

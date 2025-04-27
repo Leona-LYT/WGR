@@ -70,14 +70,17 @@ def sample_noise(size, dim, distribution='gaussian', mu=None, cov=None, a=None, 
 # =============================================================================
 # evaluation on the selection of m
 # =============================================================================
-def selection_m(L2_value, noise_dim, Xdim, train_size ):
+def selection_m(G, x, y, noise_dim, Xdim, Ydim, train_size ):
     """
     Calculate selection criterion for m, which is the dimension of noise vector eta.
     
     Args:
-        L2_vale: The L2_value computed based on the training data
+        G: generator
+        x: Covariates of training data
+        y: Predictors of training data
         noise_dim: Dimension of noise vector
         Xdim: Dimension of input features
+        Ydim: Dimension of response
         threshold: A threshold to decide which penalization is used.
         train_size: Number of samples
 
@@ -85,15 +88,26 @@ def selection_m(L2_value, noise_dim, Xdim, train_size ):
         float: Selection criterion value (lower is better)
     """
 
-    # Calculate complexity penalty   
-    complexity_penalty = (Xdim + noise_dim) * np.log(train_size) / train_size
+    with torch.no_grad():
         
-     
-    # Calculate selection criterion
-    value_m = L2_value + complexity_penalty
+        # compute L2 error
+        output = torch.zeros([500,train_size,Ydim])
+        for i in range(500):
+            eta = sample_noise(size=train_size, dim=noise_dim)
+            g_input =  torch.cat([x.view([train_size,Xdim]),eta],dim=1)
+            output[i] = G(g_input.float()).detach()
+        
+        if Ydim == 1:
+            L2_value = l2_loss(output.mean(dim=0), y.view([train_size,Ydim]))
+        if Ydim > 1:
+            L2_value = torch.mean(l2_loss(output.mean(dim=0), y),dim=0)
+        # Calculate complexity penalty   
+        complexity_penalty = (Xdim + noise_dim) * np.log(train_size) / train_size
+        
+        # Calculate selection criterion
+        value_m = L2_value + complexity_penalty
 
     return value_m
-
 # =============================================================================
 # Lipschitz Continuous Constraint
 # =============================================================================

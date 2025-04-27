@@ -171,7 +171,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                       f"L1: {l1_acc:.4f}, L2: {l2_acc:.4f}")
                 
                 # Save model if validation improves
-                if (Ydim==1) and (l2_acc < best_acc):
+                if (save_last==False) and (l2_acc < best_acc):
                     best_acc = l2_acc
                     best_model_g = copy.deepcopy(G.state_dict())
                     best_model_d = copy.deepcopy(D.state_dict())
@@ -183,7 +183,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
 
                 # for multivariate model, conduct the visulaization
                 if is_plot:
-                    if (Ydim>1) and (iter_count % plot_iter == 0): 
+                    if (iter_count % plot_iter == 0): 
                         generate_Y = torch.zeros([1000,2]) #generate 500 response 
                         for i in range(1000):
                             plot_eta = sample_noise(1, dim = noise_dim, distribution=noise_distribution).to(device)

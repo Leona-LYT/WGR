@@ -111,7 +111,7 @@ def main():
 
         
         #compute m score
-        m_score = selection_m(G=trained_G, x=train_X, y=train_Y, noise_dim=sorted_list[0], Xdim=args.Xdim, Ydim=args.Ydim, train_size=args.train)
+        m_score = selection_m(G=trained_G, x=train_X, y=train_Y, noise_dim=sorted_list[k], Xdim=args.Xdim, Ydim=args.Ydim, train_size=args.train)
         
         G_m_score.append(m_score)
         test_G_quantile.append(quantile_result.copy() if isinstance(quantile_result, np.ndarray) else np.array(list(quantile_result)))

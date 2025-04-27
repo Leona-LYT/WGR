@@ -12,7 +12,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                   batch_size,  J_size=50, noise_distribution='gaussian', multivariate=False,
                   lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
                   num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
-                  lr_decay_step=5, lr_decay_gamma=0.1, save_last = False, is_plot=False, plot_iter=500):
+                  lr_decay_step=5, lr_decay_gamma=0.1, save_last  = False, is_plot=False, plot_iter=500):
     """
     Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
     
@@ -171,7 +171,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                       f"L1: {l1_acc:.4f}, L2: {l2_acc:.4f}")
                 
                 # Save model if validation improves
-                if (save_last==False) and (l2_acc < best_acc):
+                if (save_last ==False) and (l2_acc < best_acc):
                     best_acc = l2_acc
                     best_model_g = copy.deepcopy(G.state_dict())
                     best_model_d = copy.deepcopy(D.state_dict())

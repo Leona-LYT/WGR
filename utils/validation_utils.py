@@ -2,7 +2,7 @@ import torch
 from utils.basic_utils import  sample_noise,  l1_loss, l2_loss
 
 
-def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', multivariate=False):
+def val_G(G, loader_data, noise_dim, Xdim, Ydim, distribution='gaussian', num_samples=100, device='cpu', multivariate=False):
     """
     Validate generator performance using L1 and L2 losses.
     Handles both univariate and multivariate outputs.
@@ -11,6 +11,7 @@ def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', 
         G: Generator model
         loader_data: Validation data loader
         noise_dim: Dimension of noise vector
+        distribution (str): Distribution type of noise vector
         num_samples: Number of samples to generate for each input (default: 100)
         device: Device to run validation on ('cuda' or 'cpu')
         loss_functions: Custom loss functions as dict with 'l1' and 'l2' keys (optional)
@@ -42,7 +43,7 @@ def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', 
             # Generate multiple outputs for each input
             outputs = []
             for i in range(num_samples):
-                eta = sample_noise(x.size(0), noise_dim).to(device)
+                eta = sample_noise(x.size(0), noise_dim, distribution=distribution , mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale).to(device)
                 
                 # Handle input reshaping if needed
                 g_input = torch.cat([x.view(x.size(0), Xdim), eta], dim=1)
@@ -85,7 +86,7 @@ def val_G(G, loader_data, noise_dim, Xdim, Ydim, num_samples=100, device='cpu', 
     
     return scalar_L1, scalar_L2
 
-def val_G_image(G, loader_data, noise_dim, Xdim, Ydim,  device='cpu', multivariate=False):
+def val_G_image(G, loader_data, noise_dim, Xdim, Ydim, distribution='gaussian', device='cpu', multivariate=False):
     """
     Validate generator performance using L1 and L2 losses.
     Handles reconstruction task for image dataset.
@@ -94,6 +95,7 @@ def val_G_image(G, loader_data, noise_dim, Xdim, Ydim,  device='cpu', multivaria
         G: Generator model
         loader_data: Validation data loader
         noise_dim: Dimension of noise vector
+        distribution (str): Distribution type ('gaussian', 'multivariate_gaussian', 'uniform', 'laplace')
         device: Device to run validation on ('cuda' or 'cpu')
         loss_functions: Custom loss functions as dict with 'l1' and 'l2' keys (optional)
         multivariate: Whether the output is multivariate (default: False)
@@ -114,7 +116,7 @@ def val_G_image(G, loader_data, noise_dim, Xdim, Ydim,  device='cpu', multivaria
 
             x, y = x.to(device), y.to(device) 
         
-            eta = sample_noise(x.size(0), noise_dim).to(device)
+            eta = sample_noise(x.size(0), noise_dim, distribution=distribution , mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale).to(device)
                 
             # Handle input reshaping if needed
             g_input = torch.cat([x.view(x.size(0), Xdim), eta], dim=1)

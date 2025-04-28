@@ -9,7 +9,7 @@ from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penal
 from utils.plot_utils import plot_kde_2d, convert_generated_to_mnist_range,  visualize_mnist_digits, visualize_digits 
 
 def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Xdim, Ydim, 
-                  batch_size,  J_size=50, noise_distribution='gaussian', multivariate=False,
+                  batch_size,  J_size=50, noise_distribution='gaussian', a=None, b=None, multivariate=False,
                   lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
                   num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
                   lr_decay_step=5, lr_decay_gamma=0.1, save_last  = False, is_plot=False, plot_iter=500):
@@ -29,6 +29,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         batch_size: Batch size
         J_size: Generator projection size (default: 50)
         noise_distribution: Distribution for noise sampling (default: 'gaussian')
+        a (float): Lower bound for uniform distribution
+        b (float): Upper bound for uniform distribution
         lambda_w: Weight for Wasserstein loss (default: 0.9)
         lambda_l: Weight for L2 regularization (default: 0.1)
         save_path: Path to save models (default: './M1/')

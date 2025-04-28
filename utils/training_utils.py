@@ -8,10 +8,10 @@ from data.SimulationData import generate_multi_responses_multiY
 from utils.basic_utils import setup_seed, sample_noise, calculate_gradient_penalty, discriminator_loss, generator_loss, l1_loss, l2_loss
 from utils.plot_utils import plot_kde_2d, convert_generated_to_mnist_range,  visualize_mnist_digits, visualize_digits 
 
-def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Xdim, Ydim, 
-                  batch_size,  J_size=50, noise_distribution='gaussian', mu=None, cov=None, a=None, b=None, loc=None, scale=None, 
+def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim, Xdim, Ydim, batch_size,  J_size=50, 
+                  noise_distribution='gaussian', noise_mu=None, noise_cov=None, noise_a=None, noise_b=None, noise_loc=None, noise_scale=None, 
                   multivariate=False, lambda_w=0.9, lambda_l=0.1, save_path='./M1/', model_type="M1", start_eva=1000,  eva_iter = 50,
-                  num_epochs=10, num_samples=100, device='cuda', lr_decay=None, 
+                  num_epochs=10, num_samples=100, device='cuda', lr_decay=None, save_name = None,
                   lr_decay_step=5, lr_decay_gamma=0.1, save_last  = False, is_plot=False, plot_iter=500):
     """
     Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
@@ -29,12 +29,12 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
         batch_size: Batch size
         J_size: Generator projection size (default: 50)
         noise_distribution: Distribution for noise sampling (default: 'gaussian')
-        mu (torch.Tensor): Mean vector for multivariate Gaussian
-        cov (torch.Tensor): Covariance matrix for multivariate Gaussian
-        a (float): Lower bound for uniform distribution
-        b (float): Upper bound for uniform distribution
-        loc (torch.Tensor): Location parameter for Laplace distribution
-        scale (torch.Tensor): Scale parameter for Laplace distribution
+        noise_mu (torch.Tensor): Mean vector for multivariate Gaussian
+        noise_cov (torch.Tensor): Covariance matrix for multivariate Gaussian
+        noise_a (float): Lower bound for uniform distribution
+        noise_b (float): Upper bound for uniform distribution
+        noise_loc (torch.Tensor): Location parameter for Laplace distribution
+        noise_scale (torch.Tensor): Scale parameter for Laplace distribution
         lambda_w: Weight for Wasserstein loss (default: 0.9)
         lambda_l: Weight for L2 regularization (default: 0.1)
         save_path: Path to save models (default: './M1/')
@@ -61,7 +61,9 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
     
     # Initialize counters and metrics
     iter_count = 0
-    l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim, Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate )
+    l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim, Ydim=Ydim, distribution=noise_distribution , 
+                           mu=noise_mu, cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale, num_samples=num_samples, 
+                           device=device,  multivariate=multivariate )
                          
     # Save initial model state
     best_acc = l2_acc
@@ -100,7 +102,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
             x, y = x.to(device), y.to(device)
             
             # Sample noise
-            eta = sample_noise(x.size(0), dim=noise_dim, distribution=noise_distribution, mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale).to(device)
+            eta = sample_noise(x.size(0), dim=noise_dim, distribution=noise_distribution , mu=noise_mu, 
+                               cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale).to(device)
             
             # Prepare inputs
             d_input = torch.cat([x.view(batch_size, Xdim), y.view(batch_size, Ydim)], dim=1)     
@@ -135,7 +138,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                 # Initialize output tensor with dimensions that work for both cases
                 g_output = torch.zeros([J_size, batch_size, max(1, Ydim)], device=device)
                 for i in range(J_size):
-                    eta = sample_noise(x.size(0), noise_dim, distribution=noise_distribution, mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale).to(device)
+                    eta = sample_noise(x.size(0), noise_dim, distribution=noise_distribution , 
+                                       mu=noise_mu, cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale).to(device)
                     g_input = torch.cat([x.view(batch_size, Xdim), eta], dim=1)
                     output = G(g_input)
                     g_output[i] = output.view(batch_size, -1)  # Reshape to [batch_size, Ydim] or [batch_size, 1]
@@ -169,7 +173,7 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
 
             # Validate and save best model
             if (iter_count >= start_eva) and (iter_count % eva_iter == 0):
-                l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim,  Ydim=Ydim, num_samples=num_samples, device=device,  multivariate=multivariate )
+                l1_acc, l2_acc = val_G(G=G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim,  Ydim=Ydim, distribution=noise_distribution , mu=noise_mu, cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale, num_samples=num_samples, device=device,  multivariate=multivariate )
                 
                 print(f"Epoch {epoch}, Iter {iter_count}, "
                       f"D Loss: {np.mean(d_losses):.4f}, G Loss: {np.mean(g_losses):.4f}, "
@@ -191,7 +195,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
                     if (iter_count % plot_iter == 0): 
                         generate_Y = torch.zeros([1000,2]) #generate 500 response 
                         for i in range(1000):
-                            plot_eta = sample_noise(1, dim = noise_dim, distribution=noise_distribution, mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale).to(device)
+                            plot_eta = sample_noise(1, dim = noise_dim, distribution=noise_distribution ,
+                                                    mu=noise_mu, cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale).to(device)
                             plot_input =  torch.cat([torch.tensor([[1]]), plot_eta], dim=1)
                             generate_Y[i] = G(plot_input)
                         fig, ax = plot_kde_2d(generate_Y.detach(),title=f"Epoch {epoch} Distribution")
@@ -251,9 +256,10 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
     
     return G, D
 
-def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data , 
-                    loader_val , batch_size,  eg_x, eg_label, selected_indices, lambda_w=0.9, lambda_l=0.1, 
-                    noise_distribution= 'gaussian', save_path='.', num_epochs=10, start_eva=1000,  eva_iter = 50, data_type ='mnist',
+def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data , oader_val , batch_size,  
+                    leg_x, eg_label, selected_indices, lambda_w=0.9, lambda_l=0.1, noise_distribution= 'gaussian', 
+                    noise_mu=None, noise_cov=None, noise_a=None, noise_b=None, noise_loc=None, noise_scale=None, 
+                    save_path='.', num_epochs=10, start_eva=1000,  eva_iter = 50, data_type ='mnist',
                     device='cpu', lr_decay=None, r_decay_step=5, lr_decay_gamma=0.1, is_image=False ):
     """
     Train Wasserstein GAN Regression with Fully-Connected Neural Networks.
@@ -350,8 +356,9 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
                 print('Iter: {}, D: {:.4}, G:{:.4}'.format(iter_count,d_error.item(),g_error.item()))
 
                 if (iter_count >= start_eva):
-                    l1_G_Acc, l2_G_Acc= val_G_image(G, loader_data=loader_val, noise_dim=noise_dim, 
-                                                Xdim=Xdim, Ydim=Ydim, multivariate=True)
+                    l1_G_Acc, l2_G_Acc= val_G_image(G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim, Ydim=Ydim, 
+                                                     distribution=noise_distribution , mu=noise_mu, cov=noise_cov, 
+                                                    a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale, multivariate=True)
                     if l2_G_Acc < best_acc:
                         print('################## save G model #################')
                         best_acc = l2_G_Acc.copy()
@@ -359,12 +366,13 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
                         best_model_d = copy.deepcopy(D.state_dict())
 
                         # Save models
-                        torch.save(G.state_dict(), f"{save_path}/G_"+data_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
-                        torch.save(D.state_dict(), f"{save_path}/D_"+data_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_best.pth")
+                        torch.save(G.state_dict(), f"{save_path}/G_"+data_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_"+str(save_name)+"_best.pth")
+                        torch.save(D.state_dict(), f"{save_path}/D_"+data_type+"_d"+str(Xdim)+"_m"+str(noise_dim)+"_"+str(save_name)+"_best.pth")
                         print(f"Saved best model with L2: {best_acc:.4f}")
 
                         # plot the reconstruction image on the examples
-                        eg_eta =  sample_noise(batch_size, dim=noise_dim, distribution=noise_distribution, mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale ).to(device)
+                        eg_eta =  sample_noise(batch_size, dim=noise_dim, distribution=noise_distribution , mu=noise_mu, 
+                                               cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale ).to(device)
                         g_exam_input = torch.cat([eg_x.view(batch_size, Xdim), eg_eta], dim=1)
                         recon_y = G(g_exam_input).view(batch_size,1,12,12)
                         recover_y = convert_generated_to_mnist_range(recon_y)

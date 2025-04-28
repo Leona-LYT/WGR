@@ -256,8 +256,8 @@ def train_WGR_fnn(D, G, D_solver, G_solver, loader_train, loader_val, noise_dim,
     
     return G, D
 
-def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data , oader_val , batch_size,  
-                    leg_x, eg_label, selected_indices, lambda_w=0.9, lambda_l=0.1, noise_distribution= 'gaussian', 
+def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data , loader_val , batch_size,  
+                    eg_x, eg_label, selected_indices, lambda_w=0.9, lambda_l=0.1, noise_distribution= 'gaussian', 
                     noise_mu=None, noise_cov=None, noise_a=None, noise_b=None, noise_loc=None, noise_scale=None, 
                     save_path='.', num_epochs=10, start_eva=1000,  eva_iter = 50, data_type ='mnist',
                     device='cpu', lr_decay=None, r_decay_step=5, lr_decay_gamma=0.1, is_image=False ):

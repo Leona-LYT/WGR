@@ -142,17 +142,15 @@ for k in range(args.m_set):
     
     print(m_score)
     G_m_score.append(m_score)
-    #UJI_results.append(UJI_numerical_results)
+     
 
 print("m_score:", G_m_score)
 
 #saving the results as csv
 G_m_score_csv = pd.DataFrame(G_m_score)
-#UJI_results_csv = pd.DataFrame(CT_results)
-
 
 G_m_score_csv.to_csv("./UJI/G_m_score_UJI_d"+str(args.Xdim)+"_m_select.csv")
-#CT_results_csv.to_csv("./CT_results_UJI_d"+str(args.Xdim)+"_m_select.csv")
+ 
 
     
 

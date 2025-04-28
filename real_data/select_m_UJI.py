@@ -113,7 +113,6 @@ candidate_set = set([1] + [5*i for i in range(1, 21)])
 sorted_list = sorted(candidate_set)  # Convert set to a sorted list
 
 G_m_score = []
-UJI_results = []
 
 
 for k in range(args.m_set):

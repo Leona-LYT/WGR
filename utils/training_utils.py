@@ -322,7 +322,7 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
             if x.size(0) != batch_size:
                 continue
     
-            eta = sample_noise(x.size(0), noise_dim, distribution=noise_distribution, mu=mu, cov=cov, a=a, b=b, loc=loc, scale=scale)
+            eta = sample_noise(x.size(0), noise_dim, distribution=noise_distribution, mu=noise_mu, cov=noise_cov, a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale)
             x_data = x.view(x.size(0),784)
             g_input = torch.cat([x_data,eta],dim=1)
             
@@ -357,7 +357,7 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
 
                 if (iter_count >= start_eva):
                     l1_G_Acc, l2_G_Acc= val_G_image(G, loader_data=loader_val, noise_dim=noise_dim, Xdim=Xdim, Ydim=Ydim, 
-                                                     distribution=noise_distribution , mu=noise_mu, cov=noise_cov, 
+                                                    distribution=noise_distribution , mu=noise_mu, cov=noise_cov, 
                                                     a=noise_a, b=noise_b, loc=noise_loc, scale=noise_scale, multivariate=True)
                     if l2_G_Acc < best_acc:
                         print('################## save G model #################')

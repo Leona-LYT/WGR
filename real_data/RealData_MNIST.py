@@ -100,7 +100,7 @@ visualize_digits( images=recon_x[selected_indices] , labels = eg_label[selected_
 setup_seed(5678) 
 
 G = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=100, network_type = 'mnist', hidden_dims = [1024, 1024, 512], final_activation = 'tanh')
-D = discriminator_fnn(input_dim=784, network_type = 'mnist',  hidden_dims = [256, 256 ])
+D = discriminator_fnn(input_dim=784, network_type = 'mnist',  hidden_dims = [256, 256, 128 ])
 
 D_solver = optim.Adam(D.parameters(), lr=0.0002, betas=(0.5,0.999))
 G_solver = optim.Adam(G.parameters(), lr=0.0002, betas=(0.5,0.999))  

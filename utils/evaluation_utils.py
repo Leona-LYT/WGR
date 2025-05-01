@@ -323,17 +323,19 @@ def eva_G_UniY(G, loader_data, noise_dim, test_size, batch_size,distribution='ga
         print(test_L1.mean(), test_L2.mean(),CP_test.mean(), PI_test.mean(), std_LB.mean(), std_UB.mean() )   
         return test_L1.mean().detach().numpy(), test_L2.mean().detach().numpy(),CP_test.mean(), PI_test.mean(), std_LB.detach().mean().numpy(), std_UB.detach().mean().numpy()
 
-def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, distribution='gaussian', mu=None, cov=None, 
-                 a=None, b=None, loc=None, scale=None,  J_t_size=50):
+def eva_G_MultiY(G, x, y,  Ydim, noise_dim,  test_size, distribution='gaussian',
+                 mu=None, cov=None, a=None, b=None, loc=None, scale=None,  J_t_size=50):
     """
     Evaluate a generator model on real data analysis.
     
     Parameters:
         G (nn.Module): Generator model
+        x: Covariates used in the testing
+        y: Response used in the testing
         loader_data (DataLoader): Data loader for evaluation
         Ydim (int): Dimension of the response vector Y
         noise_dim (int): Dimension of noise vector eta
-        batch_size (int): the batch size of dataset loaded
+        test_size(int): Sample size of test data
         distribution (str): Distribution type ('gaussian', 'multivariate_gaussian', 'uniform', 'laplace')
         J_t_size (int): Number of samples to generate for each input
     
@@ -342,53 +344,44 @@ def eva_G_MultiY(G, loader_data, Ydim, noise_dim, batch_size, distribution='gaus
                standard deviation of upper bound error, standard deviation of lower bound error std
     """
 
-    num_batches = len(loader_data)
+    quantiles = [0.025, 0.975]  # Lower and upper bounds for 95% prediction interval
     
-    with torch.no_grad():
-        test_L1 = torch.zeros([num_batches, Ydim])
-        test_L2 = torch.zeros([num_batches, Ydim])
-        test_025 = torch.zeros([num_batches, batch_size, Ydim])
-        test_975 = torch.zeros([num_batches, batch_size, Ydim])
-        test_CP = torch.zeros([num_batches, batch_size, Ydim])
-        test_PI =  torch.zeros([num_batches, Ydim])
-        test_UBE = torch.zeros([num_batches, Ydim])
-        test_LBE = torch.zeros([num_batches, Ydim])
+    with torch.no_grad():   
         
-        for batch_idx, (x,y) in enumerate(loader_data):
-            output = torch.zeros([J_t_size, x.size(0), Ydim])
-            for i in range(J_t_size):
-                eta = sample_noise(x.size(0), noise_dim, distribution=distribution , mu=mu,cov=cov, a=a, b=b, loc=loc, scale=scale)
-                g_input = torch.cat([x,eta],dim=1)
-                output[i] = G(g_input.float()).detach()
-            
-            test_L1[batch_idx] = torch.mean(l1_loss( output.mean(dim=0), y ),dim=0)
-            test_L2[batch_idx] = torch.mean(l2_loss( output.mean(dim=0), y ),dim=0)
-            test_025[batch_idx] = output.quantile(0.025,axis=0)
-            test_975[batch_idx] = output.quantile(0.975,axis=0)
-            test_PI[batch_idx] = torch.mean(test_975[batch_idx]-test_025[batch_idx],dim=0)
-            test_UBE[batch_idx] = torch.std(F.mse_loss( output.quantile(0.975,axis=0), y, reduction = 'none' ),dim=0)
-            test_LBE[batch_idx] = torch.std(F.mse_loss( output.quantile(0.025,axis=0), y, reduction = 'none' ),dim=0)
-            
-            for i in range(y.size(0)):
-                for j in range(Ydim):
-                    if y[i,j] >= test_025[batch_idx][i, j] and y[i,j] <= test_975[batch_idx][i, j]:
-                        test_CP[batch_idx][i,j] = 1    
+        output = torch.zeros([J_t_size, x.size(0), Ydim])
+        for i in range(J_t_size):
+            eta = sample_noise(x.size(0), noise_dim, distribution=distribution , mu=mu,cov=cov, a=a, b=b, loc=loc, scale=scale)
+            g_input = torch.cat([x,eta],dim=1)
+            output[i] = G(g_input.float()).detach()
 
-        mean_eva_L1 = torch.mean(test_L1,dim=0).detach().numpy()
-        mean_eva_L2 = torch.mean(test_L2,dim=0).detach().numpy()
-        mean_CP = torch.sum(test_CP,dim=(0,1)).detach().numpy()/test_size
-        mean_LPI = torch.mean(test_PI,dim=0).detach().numpy()
-        mean_SD_UBE = torch.mean(test_UBE,dim=0).detach().numpy()
-        mean_SD_LBE = torch.mean(test_LBE,dim=0).detach().numpy()
+        test_L1 = torch.mean(torch.abs(output.mean(dim=0)-y ), dim=0) 
+        test_L2 = torch.mean( (output.mean(dim=0)-y)**2 , dim=0) 
+        test_CP = ( (y   >= output.quantile(quantiles[0], axis=0) ) & (y <= output.quantile(quantiles[1], axis=0) ) ).sum(dim=0)/test_size
+        test_LPI = torch.mean(torch.abs(output.quantile(quantiles[1], axis=0)  - output.quantile(quantiles[0], axis=0) ),dim=0)
+        
+        #compute lower bound error and upper bound error
+        test_LBE = output.quantile(quantiles[0],axis=0)-y
+        test_UBE = output.quantile(quantiles[1],axis=0)-y
+
+        LB_z_scores = (test_LBE - test_LBE.mean())/test_LBE.std(unbiased=False)
+        UB_z_scores = (test_UBE - test_UBE.mean())/test_UBE.std(unbiased=False)
+
+        filtered_LB = torch.abs(LB_z_scores)<3
+        filtered_UB = torch.abs(UB_z_scores)<3
+
+        row_mask_LB = filtered_LB.any(dim=1) 
+        row_mask_UB = filtered_UB.any(dim=1) 
+
+        LB_std = torch.std(torch.abs(test_LBE[row_mask_LB]),dim=0) 
+        UB_std = torch.std(torch.abs(test_UBE[row_mask_UB]),dim=0) 
         
         # Print results
-        print(f"L1 Loss: {mean_eva_L1}")
-        print(f"L2 Loss: {mean_eva_L2}")
-        print(f"Coverage Probability: {mean_CP }")
-        print(f"Length of Prediction Interval: {mean_LPI }")
-        print(f"SD of Upper Bound Error: {mean_SD_UBE }")
-        print(f"SD of Lower Bound Error: {mean_SD_LBE }")
+        print(f"L1 Loss: {test_L1}")
+        print(f"L2 Loss: {test_L2}")
+        print(f"Coverage Probability: {test_CP }")
+        print(f"Length of Prediction Interval: {test_LPI }")
+        print(f"SD of Upper Bound Error: {UB_std  }")
+        print(f"SD of Lower Bound Error: {LB_std  }")
         
         
-        return mean_eva_L1, mean_eva_L2, mean_CP, mean_LPI, mean_SD_UBE, mean_SD_LBE
-
+        return test_L1, test_L2, test_CP, test_LPI, UB_std , LB_std 

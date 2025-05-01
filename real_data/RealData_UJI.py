@@ -68,7 +68,7 @@ X_all_scaled = X_scaler.fit_transform(X_data)
 y_scalers = [StandardScaler() for _ in range(6)]
 y_scaled = np.zeros_like(y_data)
 
-for i in range(6):
+for i in range(5):
     # Fit and transform each column
     y_scaled[:, i] = y_scalers[i].fit_transform(y_data[:, i].reshape(-1, 1)).flatten()
 

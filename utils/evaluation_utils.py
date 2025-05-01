@@ -4,7 +4,7 @@ from scipy.stats import lognorm
 import math
 import torch.nn as nn
 import torch.nn.functional as F
-from utils.basic_utils import sample_noise
+from utils.basic_utils import sample_noise, l1_loss, l2_loss
 from data.SimulationData import DataGenerator, generate_multi_responses_multiY
 
 # =============================================================================
@@ -273,9 +273,6 @@ def MSE_quantile_G_multiY(G, loader_dataset,  Ydim, Xdim, noise_dim, batch_size,
 # =============================================================================
 # evaluation on real data analysis
 # =============================================================================
-# some preparations
-l1_loss = nn.L1Loss()  # loss(input,target)
-l2_loss = nn.MSELoss()
 
 def eva_G_UniY(G, loader_data, noise_dim, test_size, batch_size,distribution='gaussian', mu=None, 
                cov=None, a=None, b=None, loc=None, scale=None, J_t_size=50):
@@ -435,3 +432,15 @@ def test_dnls(net, model_type,Xdim, Ydim,loader_test,is_multivariate ):
                  
         print(eva_L1.mean(), eva_L2.mean() , mse_mean.mean())#, mse_sd.mean() )   
         return eva_L1.mean(), eva_L2.mean() , mse_mean.detach().mean().numpy()#, mse_sd.detach().mean().numpy()
+
+# =============================================================================
+# bnn evaluation
+# =============================================================================
+def bnn_evaluation(x, y, output):
+    
+    test_L1 = l1_loss( output.mean(dim=0), y )
+    test_L2 = l2_loss( output.mean(dim=0), y )
+ 
+    
+    print(test_L1,test_L2) 
+    return test_L1.detach().item(), test_L2.detach().item() 

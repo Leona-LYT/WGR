@@ -57,7 +57,11 @@ WGR/
 │     ├── RealData_UJI.py
 │     ├── RealData_MNIST.py
 │     ├── select_m_CT.py
-│     ├── MNIST_CNN.ipynb
+│     ├── select_m_UJI.py
+│     ├── select_m_MNIST.py
+│     ├── examples/
+│         ├── CT_slices.ipynb
+│         ├── MNIST_CNN.ipynb
 ├── compared_methods/
 │     ├── DNLS_Simulation.py
 │     ├── cWGAN_simulation.py
@@ -75,10 +79,12 @@ WGR/
        (a). CT slices: [https://archive.ics.uci.edu/dataset/206/relative+location+of+ct+slices+on+axial+axis]
        (b). UJIIndoorLoc: [https://archive.ics.uci.edu/dataset/310/ujiindoorloc].
      - **image datasets**: Can be downloaded using the script `image_data.py`.
+       
 - **model:**  Contains the neural network architectures used in this paper.
   1. `generator.py` and `discriminator.py` contain the generator and discriminator networks used in this paper.
   2. `regression_net.py` contains the networks used in the Deep Nonparametric Least Squares (DNLS) method.
   3. `BNN.py`: contains the networks used in the Bayesian Neural Network methods (Jospin et al., 2022).
+     
 - **utils:**  Contains utility functions for running experiments.
   1. `basic_utils.py`: Basic utility functions.
   2. `training_utils.py`: Training routines for each method implemented in the paper. For real data analysis, the `model_type` parameter may be specified as either the dataset name or the keyword `real_data`.
@@ -86,6 +92,7 @@ WGR/
   4. `validation_utilis.py`: Validation routines for model selection and performance tracking.  
   5. `plot_utils.py`: Visualization utilities for generating figures used in the paper.
   6. `cqr_utils.py`: Computes prediction intervals and corresponding coverage probabilities based on the method proposed by Romano et al. (2019), within the DNLS framework.
+     
 - **Simulation:** Contains code and examples for the simulation studies.  
   1. `WGR_UniY.py`: Provide the code for the simulation experiments with one-dimensional response Y.
   2. `WGR_MultiY.py`:Provide the code for the simulation experiments with multi-dimensional response Y.
@@ -98,7 +105,10 @@ WGR/
   2. `RealData_UJI.py`: Provide the code for UJINdoorLoc dataset. This code can handle real data analysis with multi-dimensional response Y.
   3. `RealData_MNIST.py`: Provide the code for the reconstruction task of image data. Here, we use MNIST data as an example.
   4. `select_m_CT.py`, `select_m_UJI.py` and `select_m_MNIST.py` : Provide the code for the selection of m in the analysis of the CT slice dataset, UJIndoorLoc dataset and MNIST dataset.
-  5. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
+  5. **examples**: Provides two examples of real data analyses: 
+        - `CT_slices.ipynb`: Provide the example for the application in CT slices dataset.
+        - `MNIST_CNN.ipynb`: Provide the example for the reconstruction task using a CNN, with 2,000 samples used for training.
+     
 - **compared_methods:**
   1. `BNN_CT.py` and  `BNN_UJI.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset and UJIndoorLoc dataset.
   2. `cqr_CT.py` and `cqr_UJI.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset and UJIndoorLoc dataset, which are employed to construct the prediction interval.

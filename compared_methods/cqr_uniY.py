@@ -68,18 +68,19 @@ print(args.Xdim, args.Ydim)
 #conduct conformal quantile regression
 cqr_net =  regression_net(in_dim=args.Xdim, out_dim=2, hidden_dims=[128, 64])
 optimizer = optim.Adam(cqr_net.parameters(), lr=0.001, betas=(0.9, 0.999))
-trained_net = train_quantile_net(model=cqr_net, optimizer = optimizer, X_train=X_train, y_train=y_train, alpha=0.05,epochs=1500)
-lower_correction, upper_correction = conformal_calibration(trained_net, X_cal, y_cal, alpha=0.05)
+trained_net = train_quantile_net(model=cqr_net, optimizer=optimizer, X_train=X_train, y_train=y_train, alpha=0.05,epochs=1500)
+corrections = conformal_calibration(trained_net, X_cal, y_cal, alpha=0.05,Ydim=args.Ydim)
+lower_bounds, upper_bounds = predict_intervals(trained_net, X_test, corrections, Ydim=args.Ydim)
 
 #compute CP
 coverage = ((y_test >= lower_bounds) & (y_test <= upper_bounds)).sum()/len(y_test)
 print(f"Expected coverage: 95%, Actual coverage: {coverage*100:.1f}%")
 
-#compute PIL
-PI = upper_bounds - lower_bounds
-PIL = torch.mean(PI)
+#compute CP and PIL
+CP, _, LPI = compute_CP(y_test, lower_bounds, upper_bounds, Ydim=args.Ydim)
+
 
 #compute the standard deviation of lower bound error and upper bound error
-LB_std = torch.std(y-lower_bounds)
-UB_std = torch.std(upper_bounds-y)
+LB_std = torch.std(torch.Tensor(lower_bounds)-y_test)
+UB_std = torch.std(torch.Tensor(upper_bounds)-y_test)
 

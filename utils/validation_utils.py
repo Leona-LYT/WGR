@@ -137,3 +137,19 @@ def val_G_image(G, loader_data, noise_dim, Xdim, Ydim, distribution='gaussian', 
         scalar_L2 = mean_L2.cpu().numpy()
     
         return scalar_L1, scalar_L2
+
+def val_dnls(net,loader_val):
+    with torch.no_grad():
+        val_L1 = torch.zeros([len(loader_val)])
+        val_L2 = torch.zeros([len(loader_val)])
+
+        for batch_idx, (x,y) in enumerate(loader_val):
+           
+            output = net(x).view(x.size(0)).detach()
+            
+            val_L1[batch_idx] = l1_loss( output , y )
+            val_L2[batch_idx] = l2_loss( output , y )
+                 
+        print(val_L1.mean(), val_L2.mean()) 
+        return val_L1.mean().detach().numpy(), val_L2.mean().detach().numpy() 
+

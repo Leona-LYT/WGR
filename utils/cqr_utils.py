@@ -176,13 +176,13 @@ def compute_CP(y_test, lower_bounds, upper_bounds, Ydim=1):
    # Calculate coverage
    in_interval = (y_test >= lower_bounds) & (y_test <= upper_bounds)
    dim_coverage = np.mean(in_interval, axis=0)
-   joint_coverage = np.mean(np.all(in_interval, axis=1))
+    
    
    # Calculate interval widths
    widths = np.mean(upper_bounds - lower_bounds, axis=0)
    
    print(f"Average coverage: {np.mean(dim_coverage):.4f}")
-   print(f"Joint coverage: {joint_coverage:.4f}")
+ 
    print(f"Average width: {np.mean(widths):.4f}")
    
-   return dim_coverage, joint_coverage, widths    
+   return dim_coverage,  widths    

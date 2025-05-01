@@ -1,4 +1,6 @@
+import np
 import torch
+
 
 def quantile_loss(y_true, y_pred, quantile):
     """quantile loss function"""

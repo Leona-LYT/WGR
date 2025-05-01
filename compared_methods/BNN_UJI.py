@@ -23,7 +23,8 @@ from pyro.infer import MCMC, NUTS
 from pyro.infer import Predictive
 
 from models.BNN import Bayesian_fnn, BNN_CP
-from utils.basic_utils import setup_seed, get_dimension, bnn_evaluation
+from utils.basic_utils import setup_seed, get_dimension
+from utils.evaluation_utils import bnn_evaluation
 
 import argparse
 
@@ -112,7 +113,7 @@ mcmc.run(X_train.float(), y_train.float())
 predictive = Predictive(model=model, posterior_samples=mcmc.get_samples())
 preds = predictive(test_X)
     
-test_evaluation( test_Y, preds['obs'])
+bnn_evaluation( test_Y, preds['obs'])
 
 preds['obs'].quantile(0.05,axis=0)
 preds['obs'].quantile(0.95,axis=0)

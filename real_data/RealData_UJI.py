@@ -65,7 +65,7 @@ y_data = all_UJI.iloc[:, -5:].values
 X_scaler = StandardScaler()
 X_all_scaled = X_scaler.fit_transform(X_data)
 
-y_scalers = [StandardScaler() for _ in range(6)]
+y_scalers = [StandardScaler() for _ in range(5)]
 y_scaled = np.zeros_like(y_data)
 
 for i in range(5):

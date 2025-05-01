@@ -18,6 +18,8 @@ from sklearn.model_selection import train_test_split
 
 from models.BNN import Bayesian_fnn, BNN_CP
 from utils.basic_utils import setup_seed, get_dimension, bnn_evaluation
+from pyro.infer import MCMC, NUTS
+from pyro.infer import Predictive
 
 import argparse
 

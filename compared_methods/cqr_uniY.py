@@ -34,7 +34,7 @@ parser.add_argument('--val', default=3500, type=int, help='size of validation da
 parser.add_argument('--test', default=10000, type=int, help='size of test dataset')
 
 parser.add_argument('--train_batch', default=128, type=int, metavar='BS', help='batch size while training')
-parser.add_argument('--val_batch', default=100, type=int, metavar='BS', help='batch size while validation')
+parser.add_argument('--cal_batch', default=100, type=int, metavar='BS', help='batch size while calibration')
 parser.add_argument('--test_batch', default=100, type=int, metavar='BS', help='batch size while testing')
 parser.add_argument('--epochs', default=50, type=int, help='number of epochs to train')
 
@@ -47,9 +47,9 @@ all_CT = pd.read_csv("../data/CT.csv")
 all_CT = all_CT.iloc[:, 1:] 
 
 setup_seed(5678)  
-#split data into training dataset, testing dataset and validation dataset
+#split data into training dataset, testing dataset and calibration dataset
 train_cal_data, test_data = train_test_split(all_CT, test_size=args.test)#, random_state=5678)
-train_data, cal_data = train_test_split(train_cal_data, test_size=args.val)#, random_state=5678)
+train_data, cal_data = train_test_split(train_cal_data, test_size=args.cal)#, random_state=5678)
 
 # Convert pandas DataFrames to PyTorch tensors
 X_train = torch.tensor(train_data.values[:, :-1], dtype=torch.float32)

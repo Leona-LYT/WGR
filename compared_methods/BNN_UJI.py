@@ -97,7 +97,7 @@ args.Xdim = get_dimension(X_train)
 args.Ydim = get_dimension(y_train)
 print(args.Xdim, args.Ydim)
 
-model = Bayesian_fnn(in_dim=520, out_dim=5, hidden_dims=[40, 20])
+model = Bayesian_fnn(in_dim=520, out_dim=5, hidden_dims=[90, 45])
 
 # Set Pyro random seed
 pyro.set_rng_seed(5678)

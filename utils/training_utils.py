@@ -405,4 +405,34 @@ def train_WGR_image(D,G, D_solver,G_solver, Xdim, Ydim, noise_dim, loader_data ,
     D.load_state_dict(best_model_d)
     
     return G, D
+
+
+def train_dnls(net, solver, loader_data, loader_val, reps, num_epochs=10, Best_acc = 50):
+    iter_count = 0 
+    l1_Acc, l2_Acc = val_dnls(net=net, loader_val=loader_val)
     
+    
+    for epoch in range(num_epochs):
+        for batch_idx, (x,y) in enumerate(loader_data):
+            if x.size(0) != args.train_batch:
+                continue
+    
+            solver.zero_grad()
+            fake_y = net(x).view(x.size(0))
+            
+            dnls_error = l2_loss(fake_y, y)
+            dnls_error.backward()
+            solver.step()
+            
+            if(iter_count > 500):    
+                if(iter_count % 100 == 0):
+                    l1_Acc, l2_Acc  = val_dnls(net=net, loader_val=loader_val )
+                    # Quantile_G()
+                    if l2_Acc < Best_acc:
+                        Best_acc = l2_Acc.copy()
+                        best_model_net = copy.deepcopy(net.state_dict())
+                        print('################## save model #################')
+                        torch.save(net.state_dict(),'./DNLS-rep'+str(reps)+'.pth')
+            iter_count += 1
+    net.load_state_dict(best_model_net)
+    return net

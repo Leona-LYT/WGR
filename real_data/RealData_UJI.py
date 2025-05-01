@@ -55,11 +55,11 @@ print(args)
 
 # import data
 all_UJI = pd.read_csv("../data/UJIndoorLocData.csv")
-all_UJI = all_UJI.iloc[:, :-3]
+all_UJI = all_UJI.iloc[:, :-4]
 
 # Extract features and responses before splitting
-X_data = all_UJI.iloc[:, :-6].values  # Here, we use 6, because the dimensionality of this dataset is 6.
-y_data = all_UJI.iloc[:, -6:].values
+X_data = all_UJI.iloc[:, :-5].values  # Here, we use 6, because the dimensionality of this dataset is 6.
+y_data = all_UJI.iloc[:, -5:].values
 
 # Create and fit scalers
 X_scaler = StandardScaler()
@@ -83,14 +83,14 @@ train_val_data, test_data = train_test_split(all_UJI_scaled, test_size=args.test
 train_data, val_data = train_test_split(train_val_data, test_size=args.val, random_state=5678)
 
 # Convert pandas DataFrames to PyTorch tensors
-X_train = torch.tensor(train_data.values[:, :-6], dtype=torch.float32)
-y_train = torch.tensor(train_data.values[:, -6:], dtype=torch.float32)
+X_train = torch.tensor(train_data.values[:, :-5], dtype=torch.float32)
+y_train = torch.tensor(train_data.values[:, -5:], dtype=torch.float32)
 
-X_val = torch.tensor(val_data.values[:, :-6], dtype=torch.float32)
-y_val = torch.tensor(val_data.values[:, -6:], dtype=torch.float32)
+X_val = torch.tensor(val_data.values[:, :-5], dtype=torch.float32)
+y_val = torch.tensor(val_data.values[:, -5:], dtype=torch.float32)
 
-X_test = torch.tensor(test_data.values[:, :-6], dtype=torch.float32)
-y_test = torch.tensor(test_data.values[:, -6:], dtype=torch.float32)
+X_test = torch.tensor(test_data.values[:, :-5], dtype=torch.float32)
+y_test = torch.tensor(test_data.values[:, -5:], dtype=torch.float32)
 
 args.Xdim = get_dimension(X_train)
 args.Ydim = get_dimension(y_train)

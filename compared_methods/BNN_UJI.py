@@ -1,6 +1,3 @@
-"""
-This is the code for Bayesian Neural Network method in the real data analysis with multi-dimensional response.
-"""
 import sys
 import os
 current_dir = os.getcwd()  #use to import the defined functions

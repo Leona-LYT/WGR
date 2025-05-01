@@ -16,10 +16,14 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau 
 from sklearn.model_selection import train_test_split
 
-from models.BNN import Bayesian_fnn, BNN_CP
-from utils.basic_utils import setup_seed, get_dimension, bnn_evaluation
+import pyro
+import pyro.distributions as dist
+from pyro.nn import PyroModule, PyroSample
 from pyro.infer import MCMC, NUTS
 from pyro.infer import Predictive
+
+from models.BNN import Bayesian_fnn, BNN_CP
+from utils.basic_utils import setup_seed, get_dimension, bnn_evaluation
 
 import argparse
 

@@ -21,7 +21,8 @@ from pyro.infer import MCMC, NUTS
 from pyro.infer import Predictive
 
 from models.BNN import Bayesian_fnn, BNN_CP
-from utils.basic_utils import setup_seed, get_dimension, bnn_evaluation
+from utils.basic_utils import setup_seed, get_dimension
+from utils.evaluation_utils import bnn_evaluation
 
 import argparse
 

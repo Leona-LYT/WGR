@@ -59,8 +59,12 @@ WGR/
 │     ├── select_m_CT.py
 │     ├── MNIST_CNN.ipynb
 ├── compared_methods/
-│     ├── bnn_CT.py
+│     ├── DNLS_Simulation.py
+│     ├── cWGAN_simulation.py
+│     ├── BNN_CT.py
+│     ├── BNN_UJI.py
 │     ├── cqr_CT.py
+│     ├── cqr_UJI.py
 ```
 
 ## Components Descriptions
@@ -93,12 +97,13 @@ WGR/
   1. `RealData_CT.py`: Provide the code for CT slices dataset. This code can handle real data analysis with one dimensional response Y.
   2. `RealData_UJI.py`: Provide the code for UJINdoorLoc dataset. This code can handle real data analysis with multi-dimensional response Y.
   3. `RealData_MNIST.py`: Provide the code for the reconstruction task of image data. Here, we use MNIST data as an example.
-  4. `select_m_CT.py`: Provide the code for the selection of m in the analysis of the CT slice dataset.
+  4. `select_m_CT.py`, `select_m_UJI.py` and `select_m_MNIST.py` : Provide the code for the selection of m in the analysis of the CT slice dataset, UJIndoorLoc dataset and MNIST dataset.
   5. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
 - **compared_methods:**
   1. `BNN_CT.py` and  `BNN_UJI.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset and UJIndoorLoc dataset.
   2. `cqr_CT.py` and `cqr_UJI.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset and UJIndoorLoc dataset, which are employed to construct the prediction interval.
-  3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. An example is given in *compared_methods* folder.
+  3. `DNLS_simulation.py`: Provide the code foe the Deep Nonparametric Least Squares method (DNLS) used in the simulation studies.
+  4. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. An example is given in `compared_methods` folder.
 
 ## How to use 
 ### Workflow and Preparations

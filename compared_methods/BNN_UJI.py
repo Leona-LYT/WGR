@@ -115,7 +115,7 @@ bnn_evaluation( test_Y, preds['obs'])
 preds['obs'].quantile(0.05,axis=0)
 preds['obs'].quantile(0.95,axis=0)
 
-torch.save(predictive,'C:/Users/tracy/Desktop/WGR/BNN/BNN-InoorLoc.pth')
+torch.save(predictive,'./BNN-InoorLoc.pth')
 
 LB  = preds['obs'].quantile(0.05,axis=0)
 UB  = preds['obs'].quantile(0.95,axis=0)

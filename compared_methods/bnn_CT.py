@@ -17,8 +17,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 
 import pyro
-import pyro.distributions as dist
-from pyro.nn import PyroModule, PyroSample
 from pyro.infer import MCMC, NUTS
 from pyro.infer import Predictive
 

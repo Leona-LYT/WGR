@@ -1,6 +1,3 @@
-"""
-This is the code for conformal quantile prediction method in the eal data analysis
-"""
 import sys
 import os
 current_dir = os.getcwd()  #use to import the defined functions

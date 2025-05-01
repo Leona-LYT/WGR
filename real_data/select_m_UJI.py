@@ -124,8 +124,8 @@ for k in range(args.m_set):
     global G_net, D_net, trained_G, trained_D
 
     # Define generator network and discriminator network
-    G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=sorted_list[k], hidden_dims = [512, 256, 128, 64])
-    D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [512, 256, 128, 64])
+    G_net = generator_fnn(Xdim=args.Xdim, Ydim=args.Ydim, noise_dim=sorted_list[k], hidden_dims = [ 128, 64])
+    D_net = discriminator_fnn(input_dim=args.Xdim+args.Ydim, hidden_dims = [ 128, 64])
 
     # Initialize RMSprop optimizers
     D_solver = optim.Adam(D_net.parameters(), lr=0.001, betas=(0.9, 0.999))

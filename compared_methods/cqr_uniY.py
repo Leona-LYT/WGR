@@ -77,7 +77,7 @@ coverage = ((y_test >= lower_bounds) & (y_test <= upper_bounds)).sum()/len(y_tes
 print(f"Expected coverage: 95%, Actual coverage: {coverage*100:.1f}%")
 
 #compute CP and PIL
-CP, _, LPI = compute_CP(y_test, lower_bounds, upper_bounds, Ydim=args.Ydim)
+CP, LPI = compute_CP(y_test, lower_bounds, upper_bounds, Ydim=args.Ydim)
 
 
 #compute the standard deviation of lower bound error and upper bound error

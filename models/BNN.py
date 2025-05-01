@@ -213,13 +213,18 @@ class Bayesian_cnn(PyroModule):
         return x
 
 # used to compute the coverage probability
-def BNN_CP(true_Y, LB, UB, sample_size):
-    CP = torch.zeros([sample_size])
-    for i in range(sample_size):
-        if true_Y[i] > LB[i] and true_Y[i] < UB[i]:
-            CP[i] = 1
-    print(CP.sum()/sample_size)
-    return CP.sum()/sample_size
+def BNN_CP(test_Y, LB, UB):
+   """Calculate coverage probability for each dimension using tensor operations."""
+   # Create mask for points within bounds (>=, <= for inclusive intervals)
+   in_interval = (test_Y > LB) & (test_Y < UB)
+   
+   # Convert boolean mask to float (1.0 for True, 0.0 for False)
+   CP = in_interval.float()
+   
+   # Calculate coverage probability for each dimension
+   coverage = CP.mean(dim=0)
+   print(coverage)
+   return coverage
     
 # Usage examples:
 # B_net = Bayesian_fnn(in_dim=10, out_dim=1, hidden_dims=[32, 16, 8])

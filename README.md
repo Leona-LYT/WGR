@@ -96,9 +96,9 @@ WGR/
   4. `select_m_CT.py`: Provide the code for the selection of m in the analysis of the CT slice dataset.
   5. `MNIST_CNN.ipynb`: Provides an example of the reconstruction task using a CNN, with 2,000 samples used for training.
 - **compared_methods:**
-  1. `bnn_CT.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset.
-  2. `cqr_CT.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset, which is employed to construct the prediction interval.
-  3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. 
+  1. `BNN_CT.py` and  `BNN_UJI.py`: Provide the code for the BNN method used in the analysis of the CT slice dataset and UJIndoorLoc dataset.
+  2. `cqr_CT.py` and `cqr_UJI.py`: Provide the code for the CQR method used in the analysis of the CT slice dataset and UJIndoorLoc dataset, which are employed to construct the prediction interval.
+  3. **Note:** The compared cWGAN method can be reproduced using the WGR code with the settings: lambda_w = 1 and lambda_l = 0. An example is given in *compared_methods* folder.
 
 ## How to use 
 ### Workflow and Preparations

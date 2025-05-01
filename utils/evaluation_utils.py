@@ -385,3 +385,53 @@ def eva_G_MultiY(G, x, y,  Ydim, noise_dim,  test_size, distribution='gaussian',
         
         
         return test_L1, test_L2, test_CP, test_LPI, UB_std , LB_std 
+
+def test_dnls(net, model_type,Xdim, Ydim,loader_test,is_multivariate ):
+    with torch.no_grad():
+        eva_L1 = torch.zeros(10)
+        eva_L2 = torch.zeros(10)
+        mse_mean = torch.zeros(10)
+
+        for batch_idx, (x,y) in enumerate(loader_test):           
+            output = net(x).view(x.size(0)).detach()
+
+            # Set conditional mean and standard deviation based on model type
+            if model_type == "M1":
+                y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + x[:,3] - x[:,4]
+                 
+            elif model_type == "M2":
+                beta = torch.tensor([1, 1, -1, -1, 1] + [0]*(Xdim-5)).float()
+                x_si = x @ beta
+                y_test = x_si**2 + torch.sin(x_si.abs()) + 2*torch.exp(torch.tensor(-0.5))
+                
+            elif model_type == "SM1":
+                y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + torch.sin(x[:,3] + x[:,4])
+                 
+            elif model_type == "SM2":
+                y_test = x[:,0]**2 + torch.exp(x[:,1]+x[:,2]/3) + x[:,3] - x[:,4]
+                
+            elif model_type == "SM3":
+                A = 5 + x[:,0]**2/3 + x[:,1]**2 + x[:,2]**2 + x[:,3] + x[:,4]
+                y_test = A * np.exp(0.0625)
+                
+            if is_multivariate:
+                Y_generate = torch.zeros([500,x.size(0),Ydim])
+                for j in range(x.size(0)):
+                    Y_generate[:,j,:] = generate_multi_responses_multiY(x_value = x[j].view([1]).item(), n_responses=500,model_type=model_type)
+                    y_test = torch.mean(Y_generate,dim=0) 
+                     
+            # Calculate metrics based on whether it's multivariate or not
+            if is_multivariate:
+                eva_L1[batch_idx] = torch.mean(torch.abs(output  - y), dim=0)
+                eva_L2[batch_idx] = torch.mean((output  - y)**2, dim=0)
+                mse_mean[batch_idx] = torch.mean((output  - y_test)**2, dim=0)
+                 
+            else:
+                eva_L1[batch_idx] = torch.mean(torch.abs(output  - y))
+                eva_L2[batch_idx] = torch.mean((output  - y)**2)
+                mse_mean[batch_idx] = torch.mean((output  - y_test)**2)
+            
+        
+                 
+        print(eva_L1.mean(), eva_L2.mean() , mse_mean.mean())#, mse_sd.mean() )   
+        return eva_L1.mean(), eva_L2.mean() , mse_mean.detach().mean().numpy()#, mse_sd.detach().mean().numpy()

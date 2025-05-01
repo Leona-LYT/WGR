@@ -87,7 +87,7 @@ mcmc.run(X_train.float(), y_train.float())
 predictive = Predictive(model=model, posterior_samples=mcmc.get_samples())
 preds = predictive(X_test)
     
-test_evaluation(X_test, y_test, preds['obs'])
+bnn_evaluation(X_test, y_test, preds['obs'])
 
 preds['obs'].quantile(0.05,axis=0)
 preds['obs'].quantile(0.95,axis=0)

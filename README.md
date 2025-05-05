@@ -3,8 +3,7 @@ The repository contains the code for the paper "Wasserstein Generative Regressio
 
 
 ## 📦 Python Module Versions
-Our current implementation depends on the following Python packages:
-
+The experiments are conducted using Python (version 3.11.10), and the current implementation depends on the following Python packages:
 ```txt
 numpy==2.1.3
 pandas==2.2.3

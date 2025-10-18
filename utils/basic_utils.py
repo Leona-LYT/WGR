@@ -3,8 +3,10 @@ import random
 import numpy as np
 import torch.nn as nn
 import torch.distributions as dist
- 
+
+# =============================================================================
 #Random seeds
+# =============================================================================
 def setup_seed(seed):
      torch.manual_seed(seed)
      torch.cuda.manual_seed_all(seed)
@@ -12,6 +14,12 @@ def setup_seed(seed):
      random.seed(seed)
      torch.backends.cudnn.deterministic = True
      torch.backends.cudnn.benchmark = False
+
+def get_dimension(x):
+     if len(x.shape) == 1:
+        return 1  
+     else:
+        return x.shape[-1]  
 
 # =============================================================================
 # noise generation

@@ -16,9 +16,9 @@ def setup_seed(seed):
      torch.backends.cudnn.benchmark = False
 
 def get_dimension(x):
-     if len(x.shape) == 1:
+    if len(x.shape) == 1:
         return 1  
-     else:
+    else:
         return x.shape[-1]  
 
 # =============================================================================
